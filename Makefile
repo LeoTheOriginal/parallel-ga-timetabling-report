@@ -1,7 +1,7 @@
-# report/Makefile -- Compile raport.tex to PDF
-# Usage: make (from report/ directory)
+# Makefile -- Compile main.tex to PDF
+# Usage: make (from parallel-ga-timetabling-report/ directory)
 
-TEX = raport
+TEX = main
 PDF = $(TEX).pdf
 
 .PHONY: all clean
