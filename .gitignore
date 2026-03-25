@@ -1,0 +1,16 @@
+# LaTeX build artifacts
+*.aux
+*.log
+*.toc
+*.out
+*.nav
+*.snm
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
+# OS
+.DS_Store
+Thumbs.db
