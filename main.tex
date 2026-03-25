@@ -12,6 +12,7 @@
 \usepackage{tikz}
 \usepackage{listings}
 \usepackage{xcolor}
+\usepackage{color}
 \usepackage{array}
 
 \graphicspath{{common/}{figures/}}
@@ -37,19 +38,7 @@
 \definecolor{codeblue}{rgb}{0.13,0.29,0.53}
 \definecolor{codeorange}{rgb}{0.8,0.4,0.0}
 
-% --- Common literate for Polish characters ---
-\newcommand{\polishliterate}{%
-    literate=
-    {ą}{{\k a}}1 {Ą}{{\k A}}1
-    {ć}{{\'c}}1 {Ć}{{\'C}}1
-    {ę}{{\k e}}1 {Ę}{{\k E}}1
-    {ł}{{\l}}1 {Ł}{{\L}}1
-    {ń}{{\'n}}1 {Ń}{{\'N}}1
-    {ó}{{\'o}}1 {Ó}{{\'O}}1
-    {ś}{{\'s}}1 {Ś}{{\'S}}1
-    {ź}{{\'z}}1 {Ź}{{\'Z}}1
-    {ż}{{\.z}}1 {Ż}{{\.Z}}1
-}
+% --- Polish characters in listings (global) ---
 
 % --- C style ---
 \lstdefinestyle{cstyle}{
@@ -74,7 +63,6 @@
                   Individual,Gene,ProblemData,GAConfig,Event,
                   Room,Teacher,StudentGroup,Course,
                   MPI_Comm,MPI_Status,MPI_Datatype},
-    \polishliterate
 }
 
 % --- Bash style ---
@@ -95,7 +83,6 @@
     showstringspaces=false,
     tabsize=2,
     morekeywords={mpiexec,mpicc,make,gnuplot,source,export},
-    \polishliterate
 }
 
 % --- Python style ---
@@ -116,7 +103,6 @@
     showspaces=false,
     showstringspaces=false,
     tabsize=4,
-    \polishliterate
 }
 
 % --- Makefile style ---
@@ -136,11 +122,22 @@
     showspaces=false,
     showstringspaces=false,
     tabsize=4,
-    \polishliterate
 }
 
-% Default style
-\lstset{style=cstyle}
+% Default style + Polish characters (literate must be global, not inside \lstdefinestyle)
+\lstset{
+    style=cstyle,
+    literate=
+        {ą}{{\k a}}1 {Ą}{{\k A}}1
+        {ć}{{\'c}}1 {Ć}{{\'C}}1
+        {ę}{{\k e}}1 {Ę}{{\k E}}1
+        {ł}{{\l}}1 {Ł}{{\L}}1
+        {ń}{{\'n}}1 {Ń}{{\'N}}1
+        {ó}{{\'o}}1 {Ó}{{\'O}}1
+        {ś}{{\'s}}1 {Ś}{{\'S}}1
+        {ź}{{\'z}}1 {Ź}{{\'Z}}1
+        {ż}{{\.z}}1 {Ż}{{\.Z}}1
+}
 
 % =====================================================================
 % DOCUMENT
