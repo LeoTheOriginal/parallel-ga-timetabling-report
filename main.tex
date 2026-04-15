@@ -38,6 +38,20 @@
 \definecolor{codeblue}{rgb}{0.13,0.29,0.53}
 \definecolor{codeorange}{rgb}{0.8,0.4,0.0}
 
+% --- Paleta pastelowa (spojna z notatkami Obsidian) ---
+\definecolor{obsBlueBg}{HTML}{E3F2FD}
+\definecolor{obsBlueFg}{HTML}{1565C0}
+\definecolor{obsGreenBg}{HTML}{E8F5E9}
+\definecolor{obsGreenFg}{HTML}{2E7D32}
+\definecolor{obsAmberBg}{HTML}{FFF8E1}
+\definecolor{obsAmberFg}{HTML}{F9A825}
+\definecolor{obsPurpleBg}{HTML}{F3E5F5}
+\definecolor{obsPurpleFg}{HTML}{7B1FA2}
+\definecolor{obsRedBg}{HTML}{FCE4EC}
+\definecolor{obsRedFg}{HTML}{C62828}
+\definecolor{obsOrangeBg}{HTML}{FFE0B2}
+\definecolor{obsOrangeFg}{HTML}{EF6C00}
+
 % --- Polish characters in listings (global) ---
 
 % --- C style ---
@@ -274,50 +288,52 @@ Elityzm     & Najlepszy osobnik kopiowany do następnego pokolenia \\
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    gene/.style={draw, minimum width=1.1cm, minimum height=0.6cm, align=center, font=\footnotesize\ttfamily},
-    label/.style={font=\footnotesize\bfseries, anchor=east},
+    gene/.style={draw, minimum width=1.0cm, minimum height=0.6cm, align=center, font=\footnotesize\ttfamily, thick},
+    rowlabel/.style={font=\footnotesize\bfseries, anchor=east},
     arr/.style={-{Stealth[length=2mm]}, thick},
-    node distance=0.15cm
 ]
 
 % --- Krzyżowanie jednorodne ---
-\node[font=\small\bfseries] at (3.5, 0.8) {Krzyżowanie jednorodne (uniform crossover, $p=0.8$)};
+\node[font=\small\bfseries] at (2.5, 1.0) {Krzyżowanie jednorodne (uniform crossover, $p=0.8$)};
 
-\node[label] at (-0.3, 0) {Rodzic A:};
-\foreach \i/\v/\c in {0/2-5/blue!15, 1/0-3/blue!15, 2/4-1/blue!15, 3/1-7/blue!15, 4/3-2/blue!15} {
-    \node[gene, fill=\c] (pa\i) at (0.55*\i + 0.55, 0) {\v};
+\node[rowlabel] at (0.0, 0) {Rodzic A:};
+\foreach \i/\v in {0/2-5, 1/0-3, 2/4-1, 3/1-7, 4/3-2} {
+    \node[gene, fill=obsBlueBg, draw=obsBlueFg] (pa\i) at (0.5*\i + 0.75, 0) {\v};
 }
 
-\node[label] at (-0.3, -0.8) {Rodzic B:};
-\foreach \i/\v/\c in {0/1-3/red!15, 1/3-1/red!15, 2/2-5/red!15, 3/0-4/red!15, 4/4-6/red!15} {
-    \node[gene, fill=\c] (pb\i) at (0.55*\i + 0.55, -0.8) {\v};
+\node[rowlabel] at (0.0, -0.8) {Rodzic B:};
+\foreach \i/\v in {0/1-3, 1/3-1, 2/2-5, 3/0-4, 4/4-6} {
+    \node[gene, fill=obsRedBg, draw=obsRedFg] (pb\i) at (0.5*\i + 0.75, -0.8) {\v};
 }
 
-\node[label] at (-0.3, -1.6) {Maska:};
+\node[rowlabel] at (0.0, -1.6) {Maska:};
 \foreach \i/\v in {0/A, 1/B, 2/A, 3/B, 4/A} {
-    \node[font=\footnotesize\ttfamily] at (0.55*\i + 0.55, -1.6) {\v};
+    \node[font=\footnotesize\ttfamily\bfseries] at (0.5*\i + 0.75, -1.6) {\v};
 }
 
-\node[label] at (-0.3, -2.4) {Potomek:};
-\foreach \i/\v/\c in {0/2-5/blue!15, 1/3-1/red!15, 2/4-1/blue!15, 3/0-4/red!15, 4/3-2/blue!15} {
-    \node[gene, fill=\c] (ch\i) at (0.55*\i + 0.55, -2.4) {\v};
+\node[rowlabel] at (0.0, -2.4) {Potomek:};
+\foreach \i/\v/\bg/\fg in {0/2-5/obsBlueBg/obsBlueFg, 1/3-1/obsRedBg/obsRedFg, 2/4-1/obsBlueBg/obsBlueFg, 3/0-4/obsRedBg/obsRedFg, 4/3-2/obsBlueBg/obsBlueFg} {
+    \node[gene, fill=\bg, draw=\fg] (ch\i) at (0.5*\i + 0.75, -2.4) {\v};
 }
 
-\node[font=\tiny, gray, anchor=west] at (3.5, -0.4) {gen = (timeslot, room)};
+\node[font=\tiny\itshape, gray, anchor=center] at (2.5, -3.05) {każdy gen = (timeslot, sala)};
 
 % --- Mutacja ---
-\node[font=\small\bfseries] at (3.5, -3.5) {Mutacja adaptacyjna};
+\node[font=\small\bfseries] at (2.5, -4.0) {Mutacja adaptacyjna};
 
-\node[label] at (-0.3, -4.2) {Przed:};
-\foreach \i/\v/\c in {0/2-5/white, 1/3-1/white, 2/4-1/orange!30, 3/0-4/white, 4/3-2/white} {
-    \node[gene, fill=\c] at (0.55*\i + 0.55, -4.2) {\v};
+\node[rowlabel] at (0.0, -4.8) {Przed:};
+\foreach \i/\v in {0/2-5, 1/3-1, 3/0-4, 4/3-2} {
+    \node[gene, fill=white, draw=black!60] at (0.5*\i + 0.75, -4.8) {\v};
 }
+\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpre) at (0.5*2 + 0.75, -4.8) {4-1};
 
-\node[label] at (-0.3, -5.0) {Po:};
-\foreach \i/\v/\c in {0/2-5/white, 1/3-1/white, 2/1-3/orange!30, 3/0-4/white, 4/3-2/white} {
-    \node[gene, fill=\c] at (0.55*\i + 0.55, -5.0) {\v};
+\node[rowlabel] at (0.0, -5.6) {Po:};
+\foreach \i/\v in {0/2-5, 1/3-1, 3/0-4, 4/3-2} {
+    \node[gene, fill=white, draw=black!60] at (0.5*\i + 0.75, -5.6) {\v};
 }
-\draw[arr, orange!70!black] (3.3, -4.2) -- node[right, font=\tiny] {losowy slot+sala} (3.3, -5.0);
+\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpost) at (0.5*2 + 0.75, -5.6) {1-3};
+
+\draw[arr, obsOrangeFg] (mpre.south) -- node[right=1pt, font=\tiny] {losowy (slot, sala)} (mpost.north);
 
 \end{tikzpicture}
 \caption{Ilustracja operatorów genetycznych --- krzyżowanie jednorodne i mutacja}
@@ -414,22 +430,25 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 % --- Rysunek 1: Flowchart algorytmu (co robi każda wyspa) ---
 \begin{figure}[H]
 \centering
+\resizebox{!}{0.92\textheight}{%
 \begin{tikzpicture}[
-    startstop/.style={draw, rounded corners=8pt, minimum width=3.5cm, minimum height=0.7cm, align=center, fill=red!12, thick},
-    process/.style={draw, minimum width=4.5cm, minimum height=0.7cm, align=center, fill=blue!8, thick},
-    decision/.style={draw, diamond, aspect=2.5, minimum width=3cm, align=center, fill=yellow!15, thick, inner sep=1pt},
-    mpiop/.style={draw, minimum width=4.5cm, minimum height=0.7cm, align=center, fill=green!12, thick, dashed},
-    io/.style={draw, trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=3.5cm, minimum height=0.7cm, align=center, fill=orange!12, thick},
+    startstop/.style={draw, rounded corners=6pt, minimum width=3.0cm, minimum height=0.55cm, align=center, fill=obsRedBg, draw=obsRedFg, thick, font=\footnotesize},
+    process/.style={draw, rounded corners=3pt, minimum width=3.8cm, minimum height=0.55cm, align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\footnotesize},
+    decision/.style={draw, diamond, aspect=2.5, minimum width=2.4cm, align=center, fill=obsAmberBg, draw=obsAmberFg, thick, inner sep=1pt, font=\footnotesize},
+    mpiop/.style={draw, rounded corners=3pt, minimum width=3.8cm, minimum height=0.55cm, align=center, fill=obsGreenBg, draw=obsGreenFg, thick, dashed, font=\footnotesize},
+    io/.style={draw, trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=2.6cm, minimum height=0.55cm, align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\footnotesize},
     arr/.style={-{Stealth[length=2.5mm]}, thick},
-    node distance=0.55cm
+    arrlbl/.style={font=\footnotesize, inner sep=1pt},
+    node distance=0.4cm
 ]
 
-% --- Lewa kolumna: inicjalizacja + pętla GA ---
+% --- Inicjalizacja ---
 \node[startstop] (start) {START};
 \node[mpiop, below=of start] (init) {\texttt{MPI\_Init} --- $N$ procesów};
 \node[decision, below=of init] (isrank0) {rank $= 0$?};
-\node[io, below left=0.6cm and 1.5cm of isrank0] (readcsv) {Wczytaj CSV};
-\node[mpiop, below=0.8cm of isrank0] (bcast) {\texttt{MPI\_Bcast(ProblemData)}};
+% readcsv obok isrank0 (na tym samym poziomie) — eliminuje kolizję z bcast
+\node[io, left=1.8cm of isrank0] (readcsv) {Wczytaj CSV};
+\node[mpiop, below=0.7cm of isrank0] (bcast) {\texttt{MPI\_Bcast(ProblemData)}};
 \node[process, below=of bcast] (initpop) {Inicjalizacja populacji\\(losowa, $200/N$ osobników, PCG32)};
 \node[process, below=of initpop] (eval0) {Ewaluacja fitness\\(hard $\times$ 1000 + soft)};
 
@@ -440,55 +459,57 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \node[process, below=of mutate] (repair) {Naprawa zachłanna\\(20 losowych + skan, maks. 100$\times$)};
 \node[process, below=of repair] (eval1) {Ewaluacja fitness + elityzm};
 
-\node[decision, below=0.6cm of eval1] (migcheck) {gen \% 50 $= 0$?};
-\node[mpiop, right=1.8cm of migcheck] (migrate) {\texttt{MPI\_Sendrecv}\\migracja pierścieniowa};
+\node[decision, below=0.45cm of eval1] (migcheck) {gen \% 50 $= 0$?};
+\node[mpiop, right=0.7cm of migcheck, minimum width=3.3cm] (migrate) {\texttt{MPI\_Sendrecv}\\migracja pierścieniowa};
 
-\node[mpiop, below=0.7cm of migcheck] (termcheck) {\texttt{MPI\_Allreduce(MPI\_MAX)}\\sprawdź terminację};
-\node[decision, below=0.6cm of termcheck] (done) {stop?};
+\node[mpiop, below=0.55cm of migcheck] (termcheck) {\texttt{MPI\_Allreduce(MPI\_MAX)}\\sprawdź terminację};
+\node[decision, below=0.45cm of termcheck] (done) {stop?};
 
 % --- Po pętli ---
-\node[process, below=0.7cm of done] (localsearch) {Local search --- hill climbing\\(5000 iter., zachowaj hard$=$0)};
+\node[process, below=0.55cm of done] (localsearch) {Local search --- hill climbing\\(5000 iter., zachowaj hard$=$0)};
 \node[mpiop, below=of localsearch] (gather) {\texttt{MPI\_Allreduce(MINLOC)}\\+ transfer chromosomu do rank 0};
 \node[io, below=of gather] (output) {Rank 0: zapis\\timetable.txt + schedule.csv};
 \node[mpiop, below=of output] (finalize) {\texttt{MPI\_Finalize}};
 \node[startstop, below=of finalize] (end) {END};
 
-% --- Strzałki ---
+% --- Strzałki inicjalizacji ---
 \draw[arr] (start) -- (init);
 \draw[arr] (init) -- (isrank0);
-\draw[arr] (isrank0) -- node[left, font=\footnotesize] {tak} (readcsv);
-\draw[arr] (isrank0) -- node[right, font=\footnotesize] {nie} (bcast);
-\draw[arr] (readcsv) |- (bcast);
+\draw[arr] (isrank0.west) -- node[arrlbl, above] {tak} (readcsv.east);
+\draw[arr] (isrank0) -- node[arrlbl, right] {nie} (bcast);
+\draw[arr] (readcsv.south) |- (bcast.west);
 \draw[arr] (bcast) -- (initpop);
 \draw[arr] (initpop) -- (eval0);
 \draw[arr] (eval0) -- (select);
 
-% Ramka "Pętla GA"
-\draw[thick, gray, rounded corners=6pt, dashed]
-    ([xshift=-2.8cm, yshift=0.35cm]select.north west)
-    rectangle
-    ([xshift=2.8cm, yshift=-0.35cm]done.south east);
-\node[font=\footnotesize\bfseries, gray, anchor=north east]
-    at ([xshift=2.7cm, yshift=0.3cm]select.north east) {Pętla GA (maks. 500 pokoleń)};
+% --- Ramka "Pętla GA" (label na górnej krawędzi z fill=white, przerywa linię) ---
+\coordinate (loopTL) at ([xshift=-2.4cm, yshift=0.35cm]select.north west);
+\coordinate (loopBR) at ([xshift=3.7cm, yshift=-0.3cm]done.south east);
+\draw[thick, gray!70, rounded corners=6pt, dashed] (loopTL) rectangle (loopBR);
+\node[font=\footnotesize\bfseries, gray!70!black, fill=white, inner xsep=4pt, inner ysep=1pt]
+    at ($(loopTL)!0.5!(loopTL -| loopBR)$) {Pętla GA (maks. 500 pokoleń)};
 
+% --- Strzałki pętli GA ---
 \draw[arr] (select) -- (cross);
 \draw[arr] (cross) -- (mutate);
 \draw[arr] (mutate) -- (repair);
 \draw[arr] (repair) -- (eval1);
 \draw[arr] (eval1) -- (migcheck);
-\draw[arr] (migcheck) -- node[above, font=\footnotesize] {tak} (migrate);
-\draw[arr] (migrate) |- ([yshift=-0.15cm]termcheck.east) -- (termcheck.east);
-\draw[arr] (migcheck) -- node[right, font=\footnotesize] {nie} (termcheck);
+\draw[arr] (migcheck.east) -- node[arrlbl, above] {tak} (migrate.west);
+\draw[arr] (migrate.south) |- (termcheck.east);
+\draw[arr] (migcheck) -- node[arrlbl, right] {nie} (termcheck);
 \draw[arr] (termcheck) -- (done);
-\draw[arr] (done.west) -- node[below, font=\footnotesize] {nie} ++(-2.2,0) |- (select.west);
-\draw[arr] (done) -- node[right, font=\footnotesize] {tak} (localsearch);
+\draw[arr] (done.west) -- node[arrlbl, below] {nie} ++(-2.1,0) |- (select.west);
+\draw[arr] (done) -- node[arrlbl, right] {tak} (localsearch);
 
+% --- Strzałki po pętli ---
 \draw[arr] (localsearch) -- (gather);
 \draw[arr] (gather) -- (output);
 \draw[arr] (output) -- (finalize);
 \draw[arr] (finalize) -- (end);
 
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Schemat blokowy algorytmu --- przebieg na każdej wyspie MPI}
 \label{fig:flowchart}
 \end{figure}
@@ -498,37 +519,38 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \centering
 \begin{tikzpicture}[
     island/.style={
-        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.4cm,
-        align=center, fill=blue!8, thick
+        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.2cm,
+        align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\small
     },
     data/.style={
         draw, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm,
-        align=center, fill=green!15, thick
+        align=center, fill=obsGreenBg, draw=obsGreenFg, thick, font=\small
     },
     result/.style={
         draw, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
-        align=center, fill=orange!15, thick
+        align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\small
     },
-    mig/.style={-{Stealth[length=3mm]}, thick, blue!60!black},
-    bcast/.style={-{Stealth[length=3mm]}, thick, green!50!black, dashed},
-    reduce/.style={-{Stealth[length=3mm]}, thick, red!60!black, dotted}
+    mig/.style={-{Stealth[length=3mm]}, thick, obsBlueFg},
+    bcast/.style={-{Stealth[length=3mm]}, thick, obsGreenFg, dashed},
+    reduce/.style={-{Stealth[length=3mm]}, thick, obsRedFg, dotted},
+    edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt}
 ]
 
 \node[island] (r0) at (0, 0)  {Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32};
-\node[island] (r1) at (6, 0)  {Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32};
-\node[island] (r2) at (6, -5) {Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32};
+\node[island] (r1) at (7, 0)  {Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32};
+\node[island] (r2) at (7, -5) {Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32};
 \node[island] (r3) at (0, -5) {Wyspa N-1\\Populacja (200/N)\\GA + PCG32};
 
-\draw[mig] (r0.east) -- node[above, font=\small] {MPI\_Sendrecv} (r1.west);
-\draw[mig] (r1.south) -- node[right, font=\small] {MPI\_Sendrecv} (r2.north);
-\draw[mig] (r2.west) -- node[below, font=\small] {MPI\_Sendrecv} (r3.east);
-\draw[mig] (r3.north) -- node[left, font=\small] {MPI\_Sendrecv} (r0.south);
+\draw[mig] (r0.east) -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
+\draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
+\draw[mig] (r2.west) -- node[edgelbl] {MPI\_Sendrecv} (r3.east);
+\draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
 
-\node[data] (csv) at (-3.5, 1.5) {Dane CSV};
-\draw[bcast] (csv.south east) -- node[left, font=\small, xshift=-2pt] {MPI\_Bcast} (r0.north west);
+\node[data] (csv) at (-4.2, 2.0) {Dane CSV};
+\draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
 
-\node[result] (allreduce) at (3, -8) {MPI\_Allreduce (MINLOC)};
-\node[result] (best) at (3, -9.5) {Najlepsze rozwiązanie};
+\node[result] (allreduce) at (3.5, -8) {MPI\_Allreduce (MINLOC)};
+\node[result] (best) at (3.5, -9.6) {Najlepsze rozwiązanie};
 
 \draw[reduce] (r0.south west) -- (allreduce.north west);
 \draw[reduce] (r1.south east) -- (allreduce.north east);
@@ -536,11 +558,11 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \draw[reduce] (r3.south) -- (allreduce.west);
 \draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
 
-\node[anchor=north west, font=\footnotesize] at (-3.5, -7) {
+\node[anchor=north west, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=4pt] at (-4.5, -7.2) {
     \begin{tabular}{ll}
-    {\color{blue!60!black}\rule{0.8cm}{2pt}} & Migracja (co 50 pokoleń) \\
-    {\color{green!50!black}\rule[0.5ex]{0.8cm}{1pt}} & Rozgłaszanie danych \\
-    {\color{red!60!black}\rule[0.5ex]{0.3cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.3cm}{1pt}} & Redukcja globalnego minimum \\
+    {\color{obsBlueFg}\rule{0.8cm}{1.5pt}} & Migracja (co 50 pokoleń) \\
+    {\color{obsGreenFg}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}} & Rozgłaszanie danych \\
+    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja globalnego minimum \\
     \end{tabular}
 };
 
@@ -680,33 +702,37 @@ Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych}. Naruszenia mię
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    mod/.style={draw, rounded corners=4pt, minimum width=3cm, minimum height=1.2cm, align=center, thick},
+    mod/.style={draw, rounded corners=4pt, minimum width=3cm, minimum height=1.25cm, align=center, thick, font=\footnotesize},
     arr/.style={-{Stealth[length=2.5mm]}, thick},
-    darr/.style={-{Stealth[length=2.5mm]}, thick, dashed, gray},
-    node distance=0.8cm
+    darr/.style={-{Stealth[length=2.5mm]}, thick, dashed, gray!70!black},
+    arrlbl/.style={font=\footnotesize, fill=white, inner xsep=2pt, inner ysep=1pt},
+    node distance=1.0cm
 ]
 
 % Moduły
-\node[mod, fill=red!10] (main) {\texttt{main.c}\\MPI init/finalize\\broadcast, zbieranie};
-\node[mod, fill=blue!10, right=1.5cm of main] (ga) {\texttt{ga.c/h}\\Silnik GA\\selekcja, krzyżowanie\\mutacja, migracja};
-\node[mod, fill=green!10, below=of ga] (fitness) {\texttt{fitness.c/h}\\Ewaluacja fitness\\naprawa, local search};
-\node[mod, fill=orange!10, below=of main] (io) {\texttt{io.c/h}\\Parsowanie CSV\\wypisywanie planów};
-\node[mod, fill=purple!10, below left=0.5cm and -0.5cm of fitness] (types) {\texttt{types.h}\\Struktury danych\\Gene, Individual,\\ProblemData};
-\node[mod, fill=gray!10, below right=0.5cm and -0.5cm of fitness] (pcg) {\texttt{pcg\_basic.c/h}\\Generator PCG32};
+\node[mod, fill=obsRedBg, draw=obsRedFg] (main) {\texttt{main.c}\\MPI init/finalize\\broadcast, zbieranie};
+\node[mod, fill=obsBlueBg, draw=obsBlueFg, right=2.0cm of main] (ga) {\texttt{ga.c/h}\\Silnik GA\\selekcja, krzyżowanie\\mutacja, migracja};
+\node[mod, fill=obsGreenBg, draw=obsGreenFg, below=of ga] (fitness) {\texttt{fitness.c/h}\\Ewaluacja fitness\\naprawa, local search};
+\node[mod, fill=obsOrangeBg, draw=obsOrangeFg, below=of main] (io) {\texttt{io.c/h}\\Parsowanie CSV\\wypisywanie planów};
+\node[mod, fill=obsPurpleBg, draw=obsPurpleFg, below left=0.9cm and -0.3cm of fitness] (types) {\texttt{types.h}\\Struktury danych\\Gene, Individual,\\ProblemData};
+\node[mod, fill=gray!12, draw=gray!60!black, below right=0.9cm and -0.3cm of fitness] (pcg) {\texttt{pcg\_basic.c/h}\\Generator PCG32};
 
-% MPI
-\node[draw, dashed, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm, align=center, fill=cyan!10, thick, above=0.6cm of main] (mpi) {\textbf{MPI}\\Bcast, Sendrecv\\Allreduce};
+% MPI — chmurka wyżej, żeby nie nachodziła na main.c
+\node[draw, dashed, rounded corners=4pt, minimum width=2.8cm, minimum height=0.9cm, align=center,
+      fill=obsAmberBg, draw=obsAmberFg, thick, font=\footnotesize, above=1.2cm of main] (mpi)
+      {\textbf{MPI}\\Bcast, Sendrecv, Allreduce};
 
-% Strzałki
-\draw[arr] (main) -- node[above, font=\footnotesize] {wywołuje} (ga);
-\draw[arr] (main) -- node[left, font=\footnotesize] {I/O} (io);
-\draw[arr] (ga) -- node[right, font=\footnotesize] {ewaluacja} (fitness);
-\draw[arr] (main) -- (mpi);
-\draw[arr] (ga.north) -- ++(0,0.4) -| (mpi);
+% Strzałki (labele na białym tle, żeby nie zlewały się z liniami)
+\draw[arr] (main) -- node[arrlbl] {wywołuje} (ga);
+\draw[arr] (main) -- node[arrlbl] {I/O} (io);
+\draw[arr] (ga) -- node[arrlbl] {ewaluacja} (fitness);
+\draw[arr] (main.north) -- (mpi.south);
+\draw[arr] (ga.north) -- ++(0,0.5) -| (mpi.east);
 \draw[darr] (types) -- (io);
 \draw[darr] (types) -- (fitness);
 \draw[darr] (types) -- (ga);
 \draw[darr] (pcg) -- (ga);
+\draw[darr] (pcg) -- (fitness);
 
 \end{tikzpicture}
 \caption{Architektura modułowa --- zależności między plikami źródłowymi}
