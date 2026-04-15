@@ -542,37 +542,46 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
     edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt}
 ]
 
+% --- Wyspy w rogach kwadratu ---
 \node[island] (r0) at (0, 0)  {Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32};
 \node[island] (r1) at (7, 0)  {Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32};
 \node[island] (r2) at (7, -5) {Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32};
 \node[island] (r3) at (0, -5) {Wyspa N-1\\Populacja (200/N)\\GA + PCG32};
 
-\draw[mig] (r0.east) -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
+% --- Migracja pierścieniowa (3 krawędzie pełne + dolna ze wstawką ⋯) ---
+\draw[mig] (r0.east)  -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
 \draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
-% Dolna krawędź pierścienia: r2 -> ... -> r3 (dots symbolizują N-4 wysp pośrednich)
-\node[font=\LARGE\bfseries, gray!70!black] (dots) at (3.5, -5) {$\cdots$};
-\node[font=\scriptsize\itshape, gray!60!black, below=1pt of dots] {($N-4$ wysp pośrednich)};
-\draw[mig] (r2.west) -- (dots.east);
-\draw[mig] (dots.west) -- node[edgelbl, pos=0.55] {MPI\_Sendrecv} (r3.east);
 \draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
 
+% Dolna krawędź: ciągła strzałka r2 → ⋯ → r3 z 3 węzłami na linii
+% (fill=white przerywa linię — wizualne "naturalne przejście" przez wiele wysp)
+\draw[mig] (r2.west) --
+    node[edgelbl, pos=0.22] {MPI\_Sendrecv}
+    node[font=\Large\bfseries, gray!55!black, fill=white, inner xsep=5pt, inner ysep=1pt, pos=0.5] {$\cdots$}
+    node[edgelbl, pos=0.78] {MPI\_Sendrecv}
+    (r3.east);
+
+% --- Broadcast danych wejściowych ---
 \node[data] (csv) at (-4.2, 2.0) {Dane CSV};
 \draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
 
-\node[result] (allreduce) at (3.5, -8) {MPI\_Allreduce (MINLOC)};
-\node[result] (best) at (3.5, -9.6) {Najlepsze rozwiązanie};
+% --- Allreduce + wynik (niżej, żeby zmieścić orthogonalne trasy) ---
+\node[result] (allreduce) at (3.5, -8.8)  {MPI\_Allreduce (MINLOC)};
+\node[result] (best)      at (3.5, -10.4) {Najlepsze rozwiązanie};
 
-\draw[reduce] (r0.south west) -- (allreduce.north west);
-\draw[reduce] (r1.south east) -- (allreduce.north east);
-\draw[reduce] (r2.south) -- (allreduce.east);
-\draw[reduce] (r3.south) -- (allreduce.west);
+% --- Redukcja: r0 i r1 trasowane NA ZEWNĄTRZ kwadratu (L-shape), r2/r3 prosto w dół ---
+\draw[reduce] (r0.west) -- ++(-1.5,0) |- (allreduce.west);
+\draw[reduce] (r1.east) -- ++( 1.5,0) |- (allreduce.east);
+\draw[reduce] (r3.south) -- (allreduce.north west);
+\draw[reduce] (r2.south) -- (allreduce.north east);
 \draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
 
-\node[anchor=north west, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=4pt] at (-4.5, -7.2) {
-    \begin{tabular}{ll}
-    {\color{obsBlueFg}\rule{0.8cm}{1.5pt}} & Migracja (co 50 pokoleń) \\
-    {\color{obsGreenFg}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}} & Rozgłaszanie danych \\
-    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja globalnego minimum \\
+% --- Legenda POZIOMA pod wynikiem (nie koliduje z trasami L-shape) ---
+\node[anchor=north, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=5pt] at (3.5, -11.3) {
+    \begin{tabular}{@{}l@{\ }l@{\hspace{1.3em}}l@{\ }l@{\hspace{1.3em}}l@{\ }l@{}}
+    {\color{obsBlueFg}\rule{0.7cm}{1.5pt}} & Migracja (co 50 pokoleń) &
+    {\color{obsGreenFg}\rule[0.5ex]{0.22cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.22cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.22cm}{1pt}} & Rozgłaszanie danych &
+    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja \\
     \end{tabular}
 };
 
@@ -594,38 +603,45 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
     x=1cm, y=1cm
 ]
 
-% --- Pasy ranków (rank 0 na górze, rank N-1 na dole) ---
-\foreach \r/\y in {0/3, 1/2, 2/1, {N-1}/0} {
+% --- Pasy ranków (rank 0 na górze, rank N-1 na dole; rank N-1 niżej żeby zrobić miejsce na ⋮) ---
+\foreach \r/\y in {0/3, 1/2, 2/1, {N-1}/-1} {
     \fill[obsBlueBg] (0, \y-0.26) rectangle (10, \y+0.26);
     \draw[obsBlueFg, thick, rounded corners=2pt] (0, \y-0.26) rectangle (10, \y+0.26);
     \node[lbl, anchor=east] at (-0.1, \y) {rank \r};
 }
+
+% Wielokropek na liście ranków — między rank 2 a rank N-1 (wizualnie: "dalsze rangi")
+\node[font=\Large\bfseries, gray!55!black, anchor=east] at (-0.1, 0) {$\vdots$};
 
 % Nagłówek pasów
 \node[lbl, obsBlueFg!80!black, anchor=south] at (5, 3.95)
     {\textbf{Równoległe wykonanie GA loop na wszystkich rankach} (selekcja $\to$ crossover $\to$ mutacja $\to$ repair $\to$ eval)};
 
 % --- Oś X (generacje) ---
-\draw[->, semithick, black!70] (0, -0.85) -- (10.5, -0.85) node[right, lbl] {generacja};
+\draw[->, semithick, black!70] (0, -1.85) -- (10.5, -1.85) node[right, lbl] {generacja};
 \foreach \g in {0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500} {
     \pgfmathsetmacro{\xx}{\g/50}
-    \draw[black!60] (\xx, -0.80) -- (\xx, -0.90);
-    \node[axlbl, below=-2pt] at (\xx, -0.90) {\g};
+    \draw[black!60] (\xx, -1.80) -- (\xx, -1.90);
+    \node[axlbl, below=-2pt] at (\xx, -1.90) {\g};
 }
 
 % --- Pionowe markery migracji co 50 pokoleń ---
 \foreach \g in {50, 100, 150, 200, 250, 300, 350, 400, 450} {
     \pgfmathsetmacro{\xx}{\g/50}
-    \draw[migline] (\xx, -0.4) -- (\xx, 3.5);
+    \draw[migline] (\xx, -1.4) -- (\xx, 3.5);
 }
 \node[lbl, obsGreenFg, anchor=south west] at (0.1, 4.35)
     {\textbf{MPI\_Sendrecv} --- migracja pierścieniowa (co 50 pokoleń, linie przerywane)};
 
 % --- Reprezentacyjna runda migracji w g=250 (strzałki rank-to-rank) ---
 \pgfmathsetmacro{\xm}{5}
-\draw[migarrow] (\xm, 2.74) -- (\xm, 2.26);
-\draw[migarrow] (\xm, 1.74) -- (\xm, 1.26);
-\draw[migarrow] (\xm, 0.74) -- (\xm, 0.26);
+\draw[migarrow] (\xm, 2.74) -- (\xm, 2.26);  % rank 0 -> rank 1
+\draw[migarrow] (\xm, 1.74) -- (\xm, 1.26);  % rank 1 -> rank 2
+% rank 2 -> ⋮ -> rank N-1: początek (sama linia) + pionowe trzykropki + koniec (strzałka z grotem w dół)
+\draw[thick, obsGreenFg!85!black] (\xm, 0.74) -- (\xm, 0.25);
+\node[font=\Large\bfseries, obsGreenFg!70!black, fill=white, inner xsep=3pt, inner ysep=1pt]
+    at (\xm, 0) {$\vdots$};
+\draw[migarrow] (\xm, -0.25) -- (\xm, -0.74);
 \node[font=\tiny, obsGreenFg!80!black, anchor=west] at (\xm+0.12, 1.5)
     {$+$ wrap $\text{rank}(N{-}1)\!\to\!0$};
 
@@ -633,18 +649,18 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \node[lbl, obsGreenFg, anchor=east, align=right,
       draw=obsGreenFg, fill=obsGreenBg, rounded corners=3pt, inner sep=3pt]
       (bcastbox) at (-1.1, 1.5) {\textbf{MPI\_Bcast}\\ProblemData};
-\foreach \y in {0, 1, 2, 3} {
+\foreach \y in {-1, 1, 2, 3} {
     \draw[bcastarr] (bcastbox.east) -- (-0.02, \y);
 }
 
 % --- MPI_Allreduce na końcu ---
-\draw[redarr] (10.02, 3.6) -- (10.02, -0.4);
-\foreach \y in {0, 1, 2, 3} {
+\draw[redarr] (10.02, 3.6) -- (10.02, -1.4);
+\foreach \y in {-1, 1, 2, 3} {
     \draw[->, semithick, obsRedFg] (9.98, \y) -- (10.04, \y);
 }
 \node[lbl, obsRedFg, anchor=west, align=left,
       draw=obsRedFg, fill=white, rounded corners=3pt, inner sep=3pt]
-      at (10.3, 1.5) {\textbf{MPI\_Allreduce}\\(MINLOC)\\$+$ local search};
+      at (10.3, 1.0) {\textbf{MPI\_Allreduce}\\(MINLOC)\\$+$ local search};
 
 \end{tikzpicture}
 \caption{Diagram czasoprzestrzenny wykonania --- wszystkie ranki MPI wykonują pętlę GA \emph{równolegle} (jednoczesna praca na węzłach klastra) i \emph{niezależnie od siebie między synchronizacjami} (żadnej komunikacji w trakcie selekcji/krzyżowania/mutacji). Pionowe linie przerywane oznaczają synchronizacje \texttt{MPI\_Sendrecv} co~50 pokoleń. Pełne strzałki w~$g=250$ ilustrują jedną reprezentatywną rundę migracji pierścieniowej --- wymianę podpopulacji między sąsiadującymi rankami. Finalna redukcja przez \texttt{MPI\_Allreduce(MINLOC)} zbiera globalnie najlepsze rozwiązanie, po czym rank~0 wykonuje lokalny hill climbing i zapisuje wynik.}
