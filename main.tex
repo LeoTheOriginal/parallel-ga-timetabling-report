@@ -24,7 +24,7 @@
     citecolor=blue!60!black
 }
 
-\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, matrix, fit}
 
 % =====================================================================
 % LISTING STYLES
@@ -573,9 +573,135 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 };
 
 \end{tikzpicture}
-\caption{Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
+\caption{\textbf{[Wariant A --- manualne współrzędne \texttt{at (x,y)}]} Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
 \label{fig:island-model}
 \end{figure}
+
+% =====================================================================
+% TYMCZASOWE WARIANTY Rys 3 — do wyboru (potem usuniemy dwa, zostanie jeden)
+% =====================================================================
+
+% --- Rysunek 2 (Wariant B): positioning library (right=of, below=of) ---
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    island/.style={
+        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.2cm,
+        align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\small
+    },
+    data/.style={
+        draw, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm,
+        align=center, fill=obsGreenBg, draw=obsGreenFg, thick, font=\small
+    },
+    result/.style={
+        draw, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
+        align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\small
+    },
+    mig/.style={-{Stealth[length=3mm]}, thick, obsBlueFg},
+    bcast/.style={-{Stealth[length=3mm]}, thick, obsGreenFg, dashed},
+    reduce/.style={-{Stealth[length=3mm]}, thick, obsRedFg, dotted},
+    edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt},
+    node distance=2.8cm and 3.2cm
+]
+
+\node[island]              (r0) {Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32};
+\node[island, right=of r0] (r1) {Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32};
+\node[island, below=of r1] (r2) {Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32};
+\node[island, left=of r2]  (r3) {Wyspa N-1\\Populacja (200/N)\\GA + PCG32};
+
+\draw[mig] (r0.east)  -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
+\draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
+\draw[mig] (r2.west)  -- node[edgelbl] {MPI\_Sendrecv} (r3.east);
+\draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
+
+\node[data, above left=0.9cm and 0.3cm of r0] (csv) {Dane CSV};
+\draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
+
+\node[result, below=2.8cm of $(r2)!0.5!(r3)$] (allreduce) {MPI\_Allreduce (MINLOC)};
+\node[result, below=0.8cm of allreduce]       (best)      {Najlepsze rozwiązanie};
+
+\draw[reduce] (r0.south west) -- (allreduce.north west);
+\draw[reduce] (r1.south east) -- (allreduce.north east);
+\draw[reduce] (r2.south)      -- (allreduce.east);
+\draw[reduce] (r3.south)      -- (allreduce.west);
+\draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
+
+\node[anchor=north east, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=4pt] at ([xshift=-0.5cm]r3.south west |- allreduce.north) {
+    \begin{tabular}{ll}
+    {\color{obsBlueFg}\rule{0.8cm}{1.5pt}} & Migracja (co 50 pokoleń) \\
+    {\color{obsGreenFg}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}} & Rozgłaszanie danych \\
+    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja globalnego minimum \\
+    \end{tabular}
+};
+
+\end{tikzpicture}
+\caption{\textbf{[Wariant B --- biblioteka \texttt{positioning} (\texttt{right=of}, \texttt{below=of})]} Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
+\label{fig:island-model-B}
+\end{figure}
+
+% --- Rysunek 2 (Wariant C): matrix of nodes (siatka 2x2) ---
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    island/.style={
+        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.2cm,
+        align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\small
+    },
+    data/.style={
+        draw, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm,
+        align=center, fill=obsGreenBg, draw=obsGreenFg, thick, font=\small
+    },
+    result/.style={
+        draw, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
+        align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\small
+    },
+    mig/.style={-{Stealth[length=3mm]}, thick, obsBlueFg},
+    bcast/.style={-{Stealth[length=3mm]}, thick, obsGreenFg, dashed},
+    reduce/.style={-{Stealth[length=3mm]}, thick, obsRedFg, dotted},
+    edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt}
+]
+
+\matrix (islands) [matrix of nodes, row sep=2.8cm, column sep=3.4cm,
+                   nodes={island, anchor=center}] {
+    |[name=r0]| Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32 &
+    |[name=r1]| Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32 \\
+    |[name=r3]| Wyspa N-1\\Populacja (200/N)\\GA + PCG32 &
+    |[name=r2]| Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32 \\
+};
+
+\draw[mig] (r0.east)  -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
+\draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
+\draw[mig] (r2.west)  -- node[edgelbl] {MPI\_Sendrecv} (r3.east);
+\draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
+
+\node[data, above left=0.9cm and 0.3cm of r0] (csv) {Dane CSV};
+\draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
+
+\node[result, below=2.6cm of $(r3)!0.5!(r2)$] (allreduce) {MPI\_Allreduce (MINLOC)};
+\node[result, below=0.8cm of allreduce]       (best)      {Najlepsze rozwiązanie};
+
+\draw[reduce] (r0.south west) -- (allreduce.north west);
+\draw[reduce] (r1.south east) -- (allreduce.north east);
+\draw[reduce] (r2.south)      -- (allreduce.east);
+\draw[reduce] (r3.south)      -- (allreduce.west);
+\draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
+
+\node[anchor=north east, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=4pt] at ([xshift=-0.5cm]r3.south west |- allreduce.north) {
+    \begin{tabular}{ll}
+    {\color{obsBlueFg}\rule{0.8cm}{1.5pt}} & Migracja (co 50 pokoleń) \\
+    {\color{obsGreenFg}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}} & Rozgłaszanie danych \\
+    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja globalnego minimum \\
+    \end{tabular}
+};
+
+\end{tikzpicture}
+\caption{\textbf{[Wariant C --- \texttt{matrix of nodes} (siatka 2$\times$2)]} Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
+\label{fig:island-model-C}
+\end{figure}
+
+% =====================================================================
+% KONIEC tymczasowych wariantow
+% =====================================================================
 
 % =====================================================================
 % 6. WYNIKI
