@@ -549,7 +549,11 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 
 \draw[mig] (r0.east) -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
 \draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
-\draw[mig] (r2.west) -- node[edgelbl] {MPI\_Sendrecv} (r3.east);
+% Dolna krawędź pierścienia: r2 -> ... -> r3 (dots symbolizują N-4 wysp pośrednich)
+\node[font=\LARGE\bfseries, gray!70!black] (dots) at (3.5, -5) {$\cdots$};
+\node[font=\scriptsize\itshape, gray!60!black, below=1pt of dots] {($N-4$ wysp pośrednich)};
+\draw[mig] (r2.west) -- (dots.east);
+\draw[mig] (dots.west) -- node[edgelbl, pos=0.55] {MPI\_Sendrecv} (r3.east);
 \draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
 
 \node[data] (csv) at (-4.2, 2.0) {Dane CSV};
@@ -573,135 +577,79 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 };
 
 \end{tikzpicture}
-\caption{\textbf{[Wariant A --- manualne współrzędne \texttt{at (x,y)}]} Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
+\caption{Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja. Zilustrowane $4$ reprezentatywne wyspy; wielokropek zaznacza pozostałe wyspy dla $N>4$.}
 \label{fig:island-model}
 \end{figure}
 
-% =====================================================================
-% TYMCZASOWE WARIANTY Rys 3 — do wyboru (potem usuniemy dwa, zostanie jeden)
-% =====================================================================
-
-% --- Rysunek 2 (Wariant B): positioning library (right=of, below=of) ---
+% --- Rysunek 4: Diagram czasoprzestrzenny MPI (space-time) ---
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    island/.style={
-        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.2cm,
-        align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\small
-    },
-    data/.style={
-        draw, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm,
-        align=center, fill=obsGreenBg, draw=obsGreenFg, thick, font=\small
-    },
-    result/.style={
-        draw, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
-        align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\small
-    },
-    mig/.style={-{Stealth[length=3mm]}, thick, obsBlueFg},
-    bcast/.style={-{Stealth[length=3mm]}, thick, obsGreenFg, dashed},
-    reduce/.style={-{Stealth[length=3mm]}, thick, obsRedFg, dotted},
-    edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt},
-    node distance=2.8cm and 3.2cm
+    lbl/.style={font=\footnotesize},
+    axlbl/.style={font=\scriptsize},
+    migline/.style={thick, obsGreenFg!85, dashed},
+    migarrow/.style={-{Stealth[length=1.6mm]}, semithick, obsGreenFg!85!black},
+    bcastarr/.style={-{Stealth[length=2mm]}, thick, obsGreenFg, dashed},
+    redarr/.style={-{Stealth[length=3mm]}, very thick, obsRedFg},
+    x=1cm, y=1cm
 ]
 
-\node[island]              (r0) {Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32};
-\node[island, right=of r0] (r1) {Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32};
-\node[island, below=of r1] (r2) {Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32};
-\node[island, left=of r2]  (r3) {Wyspa N-1\\Populacja (200/N)\\GA + PCG32};
+% --- Pasy ranków (rank 0 na górze, rank N-1 na dole) ---
+\foreach \r/\y in {0/3, 1/2, 2/1, {N-1}/0} {
+    \fill[obsBlueBg] (0, \y-0.26) rectangle (10, \y+0.26);
+    \draw[obsBlueFg, thick, rounded corners=2pt] (0, \y-0.26) rectangle (10, \y+0.26);
+    \node[lbl, anchor=east] at (-0.1, \y) {rank \r};
+}
 
-\draw[mig] (r0.east)  -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
-\draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
-\draw[mig] (r2.west)  -- node[edgelbl] {MPI\_Sendrecv} (r3.east);
-\draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
+% Nagłówek pasów
+\node[lbl, obsBlueFg!80!black, anchor=south] at (5, 3.95)
+    {\textbf{GA loop na każdym ranku niezależnie} (selekcja $\to$ crossover $\to$ mutacja $\to$ repair $\to$ eval)};
 
-\node[data, above left=0.9cm and 0.3cm of r0] (csv) {Dane CSV};
-\draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
+% --- Oś X (generacje) ---
+\draw[->, semithick, black!70] (0, -0.85) -- (10.5, -0.85) node[right, lbl] {generacja};
+\foreach \g in {0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500} {
+    \pgfmathsetmacro{\xx}{\g/50}
+    \draw[black!60] (\xx, -0.80) -- (\xx, -0.90);
+    \node[axlbl, below=-2pt] at (\xx, -0.90) {\g};
+}
 
-\node[result, below=2.8cm of $(r2)!0.5!(r3)$] (allreduce) {MPI\_Allreduce (MINLOC)};
-\node[result, below=0.8cm of allreduce]       (best)      {Najlepsze rozwiązanie};
+% --- Pionowe markery migracji co 50 pokoleń ---
+\foreach \g in {50, 100, 150, 200, 250, 300, 350, 400, 450} {
+    \pgfmathsetmacro{\xx}{\g/50}
+    \draw[migline] (\xx, -0.4) -- (\xx, 3.5);
+}
+\node[lbl, obsGreenFg, anchor=south west] at (0.1, 4.35)
+    {\textbf{MPI\_Sendrecv} --- migracja pierścieniowa (co 50 pokoleń, linie przerywane)};
 
-\draw[reduce] (r0.south west) -- (allreduce.north west);
-\draw[reduce] (r1.south east) -- (allreduce.north east);
-\draw[reduce] (r2.south)      -- (allreduce.east);
-\draw[reduce] (r3.south)      -- (allreduce.west);
-\draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
+% --- Reprezentacyjna runda migracji w g=250 (strzałki rank-to-rank) ---
+\pgfmathsetmacro{\xm}{5}
+\draw[migarrow] (\xm, 2.74) -- (\xm, 2.26);
+\draw[migarrow] (\xm, 1.74) -- (\xm, 1.26);
+\draw[migarrow] (\xm, 0.74) -- (\xm, 0.26);
+\node[font=\tiny, obsGreenFg!80!black, anchor=west] at (\xm+0.12, 1.5)
+    {$+$ wrap $\text{rank}(N{-}1)\!\to\!0$};
 
-\node[anchor=north east, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=4pt] at ([xshift=-0.5cm]r3.south west |- allreduce.north) {
-    \begin{tabular}{ll}
-    {\color{obsBlueFg}\rule{0.8cm}{1.5pt}} & Migracja (co 50 pokoleń) \\
-    {\color{obsGreenFg}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}} & Rozgłaszanie danych \\
-    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja globalnego minimum \\
-    \end{tabular}
-};
+% --- MPI_Bcast na starcie ---
+\node[lbl, obsGreenFg, anchor=east, align=right,
+      draw=obsGreenFg, fill=obsGreenBg, rounded corners=3pt, inner sep=3pt]
+      (bcastbox) at (-1.1, 1.5) {\textbf{MPI\_Bcast}\\ProblemData};
+\foreach \y in {0, 1, 2, 3} {
+    \draw[bcastarr] (bcastbox.east) -- (-0.02, \y);
+}
 
-\end{tikzpicture}
-\caption{\textbf{[Wariant B --- biblioteka \texttt{positioning} (\texttt{right=of}, \texttt{below=of})]} Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
-\label{fig:island-model-B}
-\end{figure}
-
-% --- Rysunek 2 (Wariant C): matrix of nodes (siatka 2x2) ---
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[
-    island/.style={
-        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.2cm,
-        align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\small
-    },
-    data/.style={
-        draw, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm,
-        align=center, fill=obsGreenBg, draw=obsGreenFg, thick, font=\small
-    },
-    result/.style={
-        draw, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
-        align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\small
-    },
-    mig/.style={-{Stealth[length=3mm]}, thick, obsBlueFg},
-    bcast/.style={-{Stealth[length=3mm]}, thick, obsGreenFg, dashed},
-    reduce/.style={-{Stealth[length=3mm]}, thick, obsRedFg, dotted},
-    edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt}
-]
-
-\matrix (islands) [matrix of nodes, row sep=2.8cm, column sep=3.4cm,
-                   nodes={island, anchor=center}] {
-    |[name=r0]| Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32 &
-    |[name=r1]| Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32 \\
-    |[name=r3]| Wyspa N-1\\Populacja (200/N)\\GA + PCG32 &
-    |[name=r2]| Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32 \\
-};
-
-\draw[mig] (r0.east)  -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
-\draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
-\draw[mig] (r2.west)  -- node[edgelbl] {MPI\_Sendrecv} (r3.east);
-\draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
-
-\node[data, above left=0.9cm and 0.3cm of r0] (csv) {Dane CSV};
-\draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
-
-\node[result, below=2.6cm of $(r3)!0.5!(r2)$] (allreduce) {MPI\_Allreduce (MINLOC)};
-\node[result, below=0.8cm of allreduce]       (best)      {Najlepsze rozwiązanie};
-
-\draw[reduce] (r0.south west) -- (allreduce.north west);
-\draw[reduce] (r1.south east) -- (allreduce.north east);
-\draw[reduce] (r2.south)      -- (allreduce.east);
-\draw[reduce] (r3.south)      -- (allreduce.west);
-\draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
-
-\node[anchor=north east, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=4pt] at ([xshift=-0.5cm]r3.south west |- allreduce.north) {
-    \begin{tabular}{ll}
-    {\color{obsBlueFg}\rule{0.8cm}{1.5pt}} & Migracja (co 50 pokoleń) \\
-    {\color{obsGreenFg}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.25cm}{1pt}} & Rozgłaszanie danych \\
-    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja globalnego minimum \\
-    \end{tabular}
-};
+% --- MPI_Allreduce na końcu ---
+\draw[redarr] (10.02, 3.6) -- (10.02, -0.4);
+\foreach \y in {0, 1, 2, 3} {
+    \draw[->, semithick, obsRedFg] (9.98, \y) -- (10.04, \y);
+}
+\node[lbl, obsRedFg, anchor=west, align=left,
+      draw=obsRedFg, fill=white, rounded corners=3pt, inner sep=3pt]
+      at (10.3, 1.5) {\textbf{MPI\_Allreduce}\\(MINLOC)\\$+$ local search};
 
 \end{tikzpicture}
-\caption{\textbf{[Wariant C --- \texttt{matrix of nodes} (siatka 2$\times$2)]} Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja}
-\label{fig:island-model-C}
+\caption{Diagram czasoprzestrzenny wykonania --- każdy rank niezależnie wykonuje pętlę GA; pionowe linie przerywane oznaczają synchronizacje \texttt{MPI\_Sendrecv} co~50 pokoleń. Pełne strzałki w~$g=250$ ilustrują jedną reprezentatywną rundę migracji pierścieniowej (wymianę podpopulacji między sąsiadującymi rankami). Finalna redukcja przez \texttt{MPI\_Allreduce(MINLOC)} zbiera globalnie najlepsze rozwiązanie, po czym rank~0 wykonuje lokalny hill climbing i zapisuje wynik.}
+\label{fig:spacetime}
 \end{figure}
-
-% =====================================================================
-% KONIEC tymczasowych wariantow
-% =====================================================================
 
 % =====================================================================
 % 6. WYNIKI
