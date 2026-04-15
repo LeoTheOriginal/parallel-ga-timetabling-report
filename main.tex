@@ -553,12 +553,12 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
 \draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
 
-% Dolna krawędź: ciągła strzałka r2 → ⋯ → r3 z 3 węzłami na linii
-% (fill=white przerywa linię — wizualne "naturalne przejście" przez wiele wysp)
+% Dolna krawędź: ciągła strzałka r2 → ⋯ → r3
+% Etykiety MPI_Sendrecv podniesione NAD linię (above), dots zostają na linii
 \draw[mig] (r2.west) --
-    node[edgelbl, pos=0.22] {MPI\_Sendrecv}
+    node[edgelbl, pos=0.22, above=2pt] {MPI\_Sendrecv}
     node[font=\Large\bfseries, gray!55!black, fill=white, inner xsep=5pt, inner ysep=1pt, pos=0.5] {$\cdots$}
-    node[edgelbl, pos=0.78] {MPI\_Sendrecv}
+    node[edgelbl, pos=0.78, above=2pt] {MPI\_Sendrecv}
     (r3.east);
 
 % --- Broadcast danych wejściowych ---
@@ -609,9 +609,6 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
     \draw[obsBlueFg, thick, rounded corners=2pt] (0, \y-0.26) rectangle (10, \y+0.26);
     \node[lbl, anchor=east] at (-0.1, \y) {rank \r};
 }
-
-% Wielokropek na liście ranków — między rank 2 a rank N-1 (wizualnie: "dalsze rangi")
-\node[font=\Large\bfseries, gray!55!black, anchor=east] at (-0.1, 0) {$\vdots$};
 
 % Nagłówek pasów
 \node[lbl, obsBlueFg!80!black, anchor=south] at (5, 3.95)
