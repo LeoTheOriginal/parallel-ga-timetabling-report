@@ -554,11 +554,10 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
 
 % Dolna krawędź: ciągła strzałka r2 → ⋯ → r3
-% Etykiety MPI_Sendrecv podniesione NAD linię (above), dots zostają na linii
+% Jedna etykieta MPI_Sendrecv nad linią, dots zostają na linii
 \draw[mig] (r2.west) --
-    node[edgelbl, pos=0.22, above=2pt] {MPI\_Sendrecv}
+    node[edgelbl, pos=0.25, above=2pt] {MPI\_Sendrecv}
     node[font=\Large\bfseries, gray!55!black, fill=white, inner xsep=5pt, inner ysep=1pt, pos=0.5] {$\cdots$}
-    node[edgelbl, pos=0.78, above=2pt] {MPI\_Sendrecv}
     (r3.east);
 
 % --- Broadcast danych wejściowych ---
