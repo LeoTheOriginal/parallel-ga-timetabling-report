@@ -554,9 +554,9 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
 
 % Dolna krawędź: ciągła strzałka r2 → ⋯ → r3
-% Jedna etykieta MPI_Sendrecv nad linią, dots zostają na linii
+% Jedna etykieta MPI_Sendrecv bezpośrednio nad ⋯ (oba w pos=0.5; label wyniesiony 5mm w górę)
 \draw[mig] (r2.west) --
-    node[edgelbl, pos=0.25, above=2pt] {MPI\_Sendrecv}
+    node[edgelbl, pos=0.5, above=5mm] {MPI\_Sendrecv}
     node[font=\Large\bfseries, gray!55!black, fill=white, inner xsep=5pt, inner ysep=1pt, pos=0.5] {$\cdots$}
     (r3.east);
 
@@ -794,40 +794,44 @@ Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych}. Naruszenia mię
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    mod/.style={draw, rounded corners=4pt, minimum width=3cm, minimum height=1.25cm, align=center, thick, font=\footnotesize},
+    mod/.style={draw, rounded corners=4pt, minimum width=3cm, minimum height=1.3cm, align=center, thick, font=\footnotesize},
     arr/.style={-{Stealth[length=2.5mm]}, thick},
     darr/.style={-{Stealth[length=2.5mm]}, thick, dashed, gray!70!black},
-    arrlbl/.style={font=\footnotesize, fill=white, inner xsep=2pt, inner ysep=1pt},
-    node distance=1.0cm
+    arrlbl/.style={font=\footnotesize, fill=white, inner xsep=3pt, inner ysep=1pt}
 ]
 
-% Moduły
-\node[mod, fill=obsRedBg, draw=obsRedFg] (main) {\texttt{main.c}\\MPI init/finalize\\broadcast, zbieranie};
-\node[mod, fill=obsBlueBg, draw=obsBlueFg, right=2.0cm of main] (ga) {\texttt{ga.c/h}\\Silnik GA\\selekcja, krzyżowanie\\mutacja, migracja};
-\node[mod, fill=obsGreenBg, draw=obsGreenFg, below=of ga] (fitness) {\texttt{fitness.c/h}\\Ewaluacja fitness\\naprawa, local search};
-\node[mod, fill=obsOrangeBg, draw=obsOrangeFg, below=of main] (io) {\texttt{io.c/h}\\Parsowanie CSV\\wypisywanie planów};
-\node[mod, fill=obsPurpleBg, draw=obsPurpleFg, below left=0.9cm and -0.3cm of fitness] (types) {\texttt{types.h}\\Struktury danych\\Gene, Individual,\\ProblemData};
-\node[mod, fill=gray!12, draw=gray!60!black, below right=0.9cm and -0.3cm of fitness] (pcg) {\texttt{pcg\_basic.c/h}\\Generator PCG32};
+% --- Warstwa 1: MPI chmurka (szeroka, pośrodku nad main i ga) ---
+\node[draw, dashed, rounded corners=4pt, minimum width=5.5cm, minimum height=0.9cm, align=center,
+      fill=obsAmberBg, draw=obsAmberFg, thick, font=\footnotesize]
+      (mpi) at (2.5, 3.1) {\textbf{MPI} --- Bcast, Sendrecv, Allreduce};
 
-% MPI — chmurka wyżej, żeby nie nachodziła na main.c
-\node[draw, dashed, rounded corners=4pt, minimum width=2.8cm, minimum height=0.9cm, align=center,
-      fill=obsAmberBg, draw=obsAmberFg, thick, font=\footnotesize, above=1.2cm of main] (mpi)
-      {\textbf{MPI}\\Bcast, Sendrecv, Allreduce};
+% --- Warstwa 2: main.c i ga.c/h (główne moduły wykonawcze) ---
+\node[mod, fill=obsRedBg,  draw=obsRedFg]  (main) at (0, 1.2) {\texttt{main.c}\\MPI init/finalize\\broadcast, zbieranie};
+\node[mod, fill=obsBlueBg, draw=obsBlueFg] (ga)   at (5, 1.2) {\texttt{ga.c/h}\\Silnik GA\\selekcja, krzyżowanie\\mutacja, migracja};
 
-% Strzałki (labele na białym tle, żeby nie zlewały się z liniami)
-\draw[arr] (main) -- node[arrlbl] {wywołuje} (ga);
-\draw[arr] (main) -- node[arrlbl] {I/O} (io);
-\draw[arr] (ga) -- node[arrlbl] {ewaluacja} (fitness);
-\draw[arr] (main.north) -- (mpi.south);
-\draw[arr] (ga.north) -- ++(0,0.5) -| (mpi.east);
-\draw[darr] (types) -- (io);
-\draw[darr] (types) -- (fitness);
-\draw[darr] (types) -- (ga);
-\draw[darr] (pcg) -- (ga);
-\draw[darr] (pcg) -- (fitness);
+% --- Warstwa 3: io.c/h i fitness.c/h (moduły pomocnicze) ---
+\node[mod, fill=obsOrangeBg, draw=obsOrangeFg] (io)      at (0, -1.0) {\texttt{io.c/h}\\Parsowanie CSV\\wypisywanie planów};
+\node[mod, fill=obsGreenBg,  draw=obsGreenFg]  (fitness) at (5, -1.0) {\texttt{fitness.c/h}\\Ewaluacja fitness\\naprawa, local search};
+
+% --- Warstwa 4: types.h i pcg_basic (warstwa danych/utility) ---
+\node[mod, fill=obsPurpleBg, draw=obsPurpleFg] (types) at (0, -3.3) {\texttt{types.h}\\Struktury danych\\Gene, Individual,\\ProblemData};
+\node[mod, fill=gray!12, draw=gray!60!black]   (pcg)   at (5, -3.3) {\texttt{pcg\_basic.c/h}\\Generator PCG32};
+
+% --- Wywołania (solid) ---
+\draw[arr] (main.east)  -- node[arrlbl] {wywołuje}  (ga.west);
+\draw[arr] (main.south) -- node[arrlbl] {I/O}       (io.north);
+\draw[arr] (ga.south)   -- node[arrlbl] {ewaluacja} (fitness.north);
+% main.c i ga.c/h → MPI (oba proste pionowe, chmurka jest szeroka)
+\draw[arr] (main.north) -- (main.north |- mpi.south);
+\draw[arr] (ga.north)   -- (ga.north   |- mpi.south);
+
+% --- Zależności nagłówkowe (dashed, warstwa utility → konsumenci) ---
+\draw[darr] (types.north)      -- (io.south);
+\draw[darr] (types.north east) -- (fitness.south west);
+\draw[darr] (pcg.north)        -- (fitness.south);
 
 \end{tikzpicture}
-\caption{Architektura modułowa --- zależności między plikami źródłowymi}
+\caption{Architektura modułowa --- zależności między plikami źródłowymi. Strzałki pełne = wywołania funkcji, strzałki kropkowane = bezpośrednie zależności nagłówkowe (\texttt{\#include}). Moduł \texttt{ga.c/h} korzysta implicite z \texttt{types.h} i \texttt{pcg\_basic.c/h} poprzez łańcuch wywołań (strzałki pominięte dla czytelności).}
 \label{fig:modules}
 \end{figure}
 
