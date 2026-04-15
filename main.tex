@@ -603,7 +603,7 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 
 % Nagłówek pasów
 \node[lbl, obsBlueFg!80!black, anchor=south] at (5, 3.95)
-    {\textbf{GA loop na każdym ranku niezależnie} (selekcja $\to$ crossover $\to$ mutacja $\to$ repair $\to$ eval)};
+    {\textbf{Równoległe wykonanie GA loop na wszystkich rankach} (selekcja $\to$ crossover $\to$ mutacja $\to$ repair $\to$ eval)};
 
 % --- Oś X (generacje) ---
 \draw[->, semithick, black!70] (0, -0.85) -- (10.5, -0.85) node[right, lbl] {generacja};
@@ -647,7 +647,7 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
       at (10.3, 1.5) {\textbf{MPI\_Allreduce}\\(MINLOC)\\$+$ local search};
 
 \end{tikzpicture}
-\caption{Diagram czasoprzestrzenny wykonania --- każdy rank niezależnie wykonuje pętlę GA; pionowe linie przerywane oznaczają synchronizacje \texttt{MPI\_Sendrecv} co~50 pokoleń. Pełne strzałki w~$g=250$ ilustrują jedną reprezentatywną rundę migracji pierścieniowej (wymianę podpopulacji między sąsiadującymi rankami). Finalna redukcja przez \texttt{MPI\_Allreduce(MINLOC)} zbiera globalnie najlepsze rozwiązanie, po czym rank~0 wykonuje lokalny hill climbing i zapisuje wynik.}
+\caption{Diagram czasoprzestrzenny wykonania --- wszystkie ranki MPI wykonują pętlę GA \emph{równolegle} (jednoczesna praca na węzłach klastra) i \emph{niezależnie od siebie między synchronizacjami} (żadnej komunikacji w trakcie selekcji/krzyżowania/mutacji). Pionowe linie przerywane oznaczają synchronizacje \texttt{MPI\_Sendrecv} co~50 pokoleń. Pełne strzałki w~$g=250$ ilustrują jedną reprezentatywną rundę migracji pierścieniowej --- wymianę podpopulacji między sąsiadującymi rankami. Finalna redukcja przez \texttt{MPI\_Allreduce(MINLOC)} zbiera globalnie najlepsze rozwiązanie, po czym rank~0 wykonuje lokalny hill climbing i zapisuje wynik.}
 \label{fig:spacetime}
 \end{figure}
 
