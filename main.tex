@@ -288,52 +288,58 @@ Elityzm     & Najlepszy osobnik kopiowany do następnego pokolenia \\
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    gene/.style={draw, minimum width=1.0cm, minimum height=0.6cm, align=center, font=\footnotesize\ttfamily, thick},
+    gene/.style={draw, minimum width=1.05cm, minimum height=0.65cm, align=center, font=\footnotesize\ttfamily, thick, inner sep=1pt},
     rowlabel/.style={font=\footnotesize\bfseries, anchor=east},
     arr/.style={-{Stealth[length=2mm]}, thick},
 ]
 
+% Spacing: każda komórka 1.05cm szer., odstęp między środkami 1.2cm → gap 0.15cm
+% Centra komórek: 1.3, 2.5, 3.7, 4.9, 6.1 (środek rzędu = 3.7)
+
 % --- Krzyżowanie jednorodne ---
-\node[font=\small\bfseries] at (2.5, 1.0) {Krzyżowanie jednorodne (uniform crossover, $p=0.8$)};
+\node[font=\small\bfseries] at (3.7, 1.0) {Krzyżowanie jednorodne (uniform crossover, $p=0.8$)};
 
-\node[rowlabel] at (0.0, 0) {Rodzic A:};
+\node[rowlabel] at (0.6, 0) {Rodzic A:};
 \foreach \i/\v in {0/2-5, 1/0-3, 2/4-1, 3/1-7, 4/3-2} {
-    \node[gene, fill=obsBlueBg, draw=obsBlueFg] (pa\i) at (0.5*\i + 0.75, 0) {\v};
+    \node[gene, fill=obsBlueBg, draw=obsBlueFg] (pa\i) at (1.2*\i + 1.3, 0) {\v};
 }
 
-\node[rowlabel] at (0.0, -0.8) {Rodzic B:};
+\node[rowlabel] at (0.6, -0.85) {Rodzic B:};
 \foreach \i/\v in {0/1-3, 1/3-1, 2/2-5, 3/0-4, 4/4-6} {
-    \node[gene, fill=obsRedBg, draw=obsRedFg] (pb\i) at (0.5*\i + 0.75, -0.8) {\v};
+    \node[gene, fill=obsRedBg, draw=obsRedFg] (pb\i) at (1.2*\i + 1.3, -0.85) {\v};
 }
 
-\node[rowlabel] at (0.0, -1.6) {Maska:};
+\node[rowlabel] at (0.6, -1.7) {Maska:};
 \foreach \i/\v in {0/A, 1/B, 2/A, 3/B, 4/A} {
-    \node[font=\footnotesize\ttfamily\bfseries] at (0.5*\i + 0.75, -1.6) {\v};
+    \node[font=\small\ttfamily\bfseries] at (1.2*\i + 1.3, -1.7) {\v};
 }
 
-\node[rowlabel] at (0.0, -2.4) {Potomek:};
+\node[rowlabel] at (0.6, -2.55) {Potomek:};
 \foreach \i/\v/\bg/\fg in {0/2-5/obsBlueBg/obsBlueFg, 1/3-1/obsRedBg/obsRedFg, 2/4-1/obsBlueBg/obsBlueFg, 3/0-4/obsRedBg/obsRedFg, 4/3-2/obsBlueBg/obsBlueFg} {
-    \node[gene, fill=\bg, draw=\fg] (ch\i) at (0.5*\i + 0.75, -2.4) {\v};
+    \node[gene, fill=\bg, draw=\fg] (ch\i) at (1.2*\i + 1.3, -2.55) {\v};
 }
 
-\node[font=\tiny\itshape, gray, anchor=center] at (2.5, -3.05) {każdy gen = (timeslot, sala)};
+\node[font=\footnotesize\itshape, gray] at (3.7, -3.25) {każdy gen = (timeslot, sala)};
 
 % --- Mutacja ---
-\node[font=\small\bfseries] at (2.5, -4.0) {Mutacja adaptacyjna};
+\node[font=\small\bfseries] at (3.7, -4.2) {Mutacja adaptacyjna};
 
-\node[rowlabel] at (0.0, -4.8) {Przed:};
+\node[rowlabel] at (0.6, -5.1) {Przed:};
 \foreach \i/\v in {0/2-5, 1/3-1, 3/0-4, 4/3-2} {
-    \node[gene, fill=white, draw=black!60] at (0.5*\i + 0.75, -4.8) {\v};
+    \node[gene, fill=white, draw=black!60] at (1.2*\i + 1.3, -5.1) {\v};
 }
-\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpre) at (0.5*2 + 0.75, -4.8) {4-1};
+\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpre) at (1.2*2 + 1.3, -5.1) {4-1};
 
-\node[rowlabel] at (0.0, -5.6) {Po:};
+\node[rowlabel] at (0.6, -6.1) {Po:};
 \foreach \i/\v in {0/2-5, 1/3-1, 3/0-4, 4/3-2} {
-    \node[gene, fill=white, draw=black!60] at (0.5*\i + 0.75, -5.6) {\v};
+    \node[gene, fill=white, draw=black!60] at (1.2*\i + 1.3, -6.1) {\v};
 }
-\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpost) at (0.5*2 + 0.75, -5.6) {1-3};
+\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpost) at (1.2*2 + 1.3, -6.1) {1-3};
 
-\draw[arr, obsOrangeFg] (mpre.south) -- node[right=1pt, font=\tiny] {losowy (slot, sala)} (mpost.north);
+\draw[arr, obsOrangeFg, thick]
+    (mpre.south) -- (mpost.north);
+\node[font=\footnotesize\itshape, obsOrangeFg, fill=white, inner xsep=3pt, inner ysep=1pt, anchor=west]
+    at ([xshift=0.35cm]$(mpre.south)!0.5!(mpost.north)$) {losowy (slot, sala)};
 
 \end{tikzpicture}
 \caption{Ilustracja operatorów genetycznych --- krzyżowanie jednorodne i mutacja}
