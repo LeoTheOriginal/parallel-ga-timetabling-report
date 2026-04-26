@@ -304,36 +304,42 @@ Synchroniczna terminacja na klastrze przez \texttt{MPI\_Allreduce(MAX)}.
 \begin{frame}{Island Model --- topologia pierścienia}
 \centering
 \begin{tikzpicture}[
-    isl/.style={draw, circle, minimum size=1.7cm, align=center, font=\scriptsize, thick,
+    isl/.style={draw, circle, minimum size=1.4cm, align=center, font=\scriptsize, thick,
                 fill=obsBlueBg, draw=obsBlueFg},
     arr/.style={-{Stealth[length=2.5mm]}, thick, obsBlueFg},
     darr/.style={-{Stealth[length=2.5mm]}, thick, dashed, obsAmberFg},
     barr/.style={-{Stealth[length=2.5mm]}, thick, obsGreenFg, dashed},
 ]
-% Wyspy ułożone tak, by ring szedł zgodnie z indeksem: 0(top) -> 1(right) -> 2(bottom) -> N-1(left) -> 0
-\node[isl] (r0) at (90:3)   {Wyspa 0\\\tiny rank 0};
-\node[isl] (r1) at (0:3)    {Wyspa 1\\\tiny rank 1};
-\node[isl] (r2) at (-90:3)  {Wyspa 2\\\tiny rank 2};
-\node[isl] (r3) at (180:3)  {Wyspa $N{-}1$};
+% Wyspy ułożone zegarowo: 0(top) -> 1(right) -> 2(bottom) -> N-1(left) -> 0
+\node[isl] (r0) at (90:2.3)   {Wyspa 0\\\tiny rank 0};
+\node[isl] (r1) at (0:2.3)    {Wyspa 1\\\tiny rank 1};
+\node[isl] (r2) at (-90:2.3)  {Wyspa 2\\\tiny rank 2};
+\node[isl] (r3) at (180:2.3)  {Wyspa\\$N{-}1$};
 
-% Ring migration: 0 -> 1 -> 2 -> ... -> N-1 -> 0
+% Ring migration
 \draw[arr] (r0) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r1);
 \draw[arr] (r1) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r2);
 \draw[arr] (r2) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {$\cdots$\,Sendrecv\,$\cdots$} (r3);
 \draw[arr] (r3) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r0);
 
-% CSV broadcast - z lewej dołem do rank 0
-\node[draw, rectangle, rounded corners=3pt, fill=obsGreenBg, draw=obsGreenFg, font=\scriptsize, align=center]
-    (csv) at (-5.5, 3) {\textbf{Dane CSV}\\\tiny rooms, teachers,\\\tiny groups, courses};
-\draw[barr, rounded corners=4pt] (csv.east) -| node[pos=0.25, above, font=\tiny\bfseries] {Bcast} (r0.north west);
+% CSV (lewo-góra) -> Bcast -> rank 0
+\node[draw, rectangle, rounded corners=3pt, fill=obsGreenBg, draw=obsGreenFg,
+      font=\scriptsize, align=center, inner sep=4pt]
+    (csv) at (-5, 3.2) {\textbf{Dane CSV}\\\tiny rooms, teachers,\\\tiny groups, courses};
+\draw[barr] (csv.south east) to[out=-30, in=140]
+    node[pos=0.55, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Bcast}
+    (r0.north west);
 
-% Allreduce(MINLOC) - z prawej, do osobnego boxa BELOW
-\node[draw, rectangle, rounded corners=3pt, fill=obsAmberBg, draw=obsAmberFg, font=\scriptsize, align=center]
-    (best) at (5.5, 3) {\textbf{Globalny}\\\textbf{najlepszy}};
-\draw[darr, rounded corners=4pt] (r0.north east) -| node[pos=0.75, above, font=\tiny\bfseries] {Allreduce(MINLOC)} (best.west);
+% rank 0 -> Allreduce(MINLOC) -> Globalny najlepszy (prawo-góra)
+\node[draw, rectangle, rounded corners=3pt, fill=obsAmberBg, draw=obsAmberFg,
+      font=\scriptsize, align=center, inner sep=4pt]
+    (best) at (5, 3.2) {\textbf{Globalny}\\\textbf{najlepszy}};
+\draw[darr] (r0.north east) to[out=40, in=-150]
+    node[pos=0.45, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Allreduce(MINLOC)}
+    (best.south west);
 \end{tikzpicture}
 
-\vspace{0.6em}
+\vspace{0.4em}
 \centering\footnotesize
 Każda wyspa ewoluuje niezależną subpopulację (\textbf{$200/N$} osobników).
 Migracja pierścieniowa co~\textbf{50~pokoleń} --- najlepszy osobnik wędruje do sąsiada.
