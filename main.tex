@@ -264,7 +264,7 @@ Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej prz
 16 & \texttt{Zatwierdzony}                & \cellcolor{obsRedBg}nie    & data zatwierdzenia rezerwacji \\
 \bottomrule
 \end{tabularx}
-\caption{Format surowego eksportu UniTime --- wszystkie 16~kolumn w~kolejności występowania w~pliku \path{events_raw.csv} (zweryfikowane przez \texttt{head -1 data/unitime/events\_raw.csv}). Konwerter \path{scripts/convert_simple.py} korzysta z~9~kolumn (zielone), pozostałe 7~jest pomijane.}
+\caption{Format surowego eksportu UniTime --- wszystkie 16~kolumn w~kolejności występowania w~pliku \texttt{events\_raw.csv} (zweryfikowane przez \texttt{head -1 data/unitime/events\_raw.csv}). Konwerter \texttt{scripts/convert\_simple.py} korzysta z~9~kolumn (zielone), pozostałe 7~jest pomijane.}
 \end{table}
 
 \subsection{Pipeline konwersji \texttt{convert\_simple.py}}
@@ -345,7 +345,7 @@ Skrypt produkuje 5~plików w~katalogu wynikowym:
 \texttt{original\_schedule.csv} & przypisania UniTime (referencja jakości) \\
 \bottomrule
 \end{tabularx}
-\caption{Pliki wyjściowe konwertera --- format spożywany przez \texttt{io.c}. $^*$Plik \path{data/simple/courses.csv} ma 7~kolumn (legacy format); aktualna wersja konwertera generuje dodatkowo 8.~kolumnę \texttt{parent\_group\_id} dla detekcji konfliktów wykład--podgrupa, którą \texttt{io.c:load\_courses} traktuje jako opcjonalną (default 0).}
+\caption{Pliki wyjściowe konwertera --- format spożywany przez \texttt{io.c}. $^*$Plik \texttt{data/simple/courses.csv} ma 7~kolumn (legacy format); aktualna wersja konwertera generuje dodatkowo 8.~kolumnę \texttt{parent\_group\_id} dla detekcji konfliktów wykład--podgrupa, którą \texttt{io.c:load\_courses} traktuje jako opcjonalną (default 0).}
 \end{table}
 
 \subsection{Podzbiory skalowalności (subsetting)}
@@ -622,7 +622,7 @@ MPI\_Send/Recv         & transfer chromosomu zwycięzcy do rank~0               
 MPI\_Finalize          & zamknięcie środowiska                                   & \texttt{main.c:213}        & 1$\times$                 & --- \\
 \bottomrule
 \end{tabularx}
-\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} obliczony z~układu pól \texttt{types.h} ($150{\cdot}144 + 300{\cdot}132 + 1200{\cdot}136 + 2500{\cdot}156 + 2500{\cdot}28 + \text{liczniki} = 684\,432$ B $\approx 668$~KB), gdzie limity \texttt{MAX\_ROOMS=150, MAX\_TEACHERS=300, MAX\_GROUPS=1200, MAX\_COURSES=2500, MAX\_EVENTS=2500}. $n_e$ = liczba zdarzeń (do~633 w~bieżącym pełnym datasecie \path{data/simple/}).}
+\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} obliczony z~układu pól \texttt{types.h} ($150{\cdot}144 + 300{\cdot}132 + 1200{\cdot}136 + 2500{\cdot}156 + 2500{\cdot}28 + \text{liczniki} = 684\,432$ B $\approx 668$~KB), gdzie limity \texttt{MAX\_ROOMS=150, MAX\_TEACHERS=300, MAX\_GROUPS=1200, MAX\_COURSES=2500, MAX\_EVENTS=2500}. $n_e$ = liczba zdarzeń (do~633 w~bieżącym pełnym datasecie \texttt{data/simple/}).}
 \label{tab:mpi-inventory}
 \end{table}
 
@@ -1032,7 +1032,7 @@ Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \tex
 16 & 0.366 & 6.32$\times$  & 0 & 341 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 100 zdarzeń (\path{results_v3/unitime_v2_n100.csv})}
+\caption{Przyspieszenie --- 100 zdarzeń (\texttt{results\_v3/unitime\_v2\_n100.csv})}
 \label{tab:speedup100}
 \end{table}
 
@@ -1048,7 +1048,7 @@ Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \tex
 16 & 0.519 & 11.18$\times$ & 0 & 641 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 200 zdarzeń (\path{results_v3/unitime_v2_n200.csv})}
+\caption{Przyspieszenie --- 200 zdarzeń (\texttt{results\_v3/unitime\_v2\_n200.csv})}
 \label{tab:speedup200}
 \end{table}
 
@@ -1064,7 +1064,7 @@ Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \tex
 16 &  1.093 & 22.38$\times$  & 0 & 1291 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 400 zdarzeń (\path{results_v3/unitime_v2_n400.csv})}
+\caption{Przyspieszenie --- 400 zdarzeń (\texttt{results\_v3/unitime\_v2\_n400.csv})}
 \label{tab:speedup400}
 \end{table}
 
@@ -1080,7 +1080,7 @@ Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \tex
 16 &  11.078 & 14.44$\times$  & 0 & 2818 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 633 zdarzeń (pełny dataset \path{data/simple/}; źródło: \path{results_v3/unitime_v2_nogrupa.csv}). Soft~viol.~uśrednione z~3 runów.}
+\caption{Przyspieszenie --- 633 zdarzeń (pełny dataset \texttt{data/simple/}; źródło: \texttt{results\_v3/unitime\_v2\_nogrupa.csv}). Soft~viol.~uśrednione z~3 runów.}
 \label{tab:speedup633}
 \end{table}
 
@@ -1107,14 +1107,14 @@ Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \tex
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{speedup.png}
-\caption{Przyspieszenie vs liczba procesów MPI dla 4~rozmiarów problemu (100/200/400/633 zdarzeń). Wykres wygenerowany skryptem \path{plots/generate_real_pngs.py} z~plików \path{results_v3/unitime_v2_*.csv}.}
+\caption{Przyspieszenie vs liczba procesów MPI dla 4~rozmiarów problemu (100/200/400/633 zdarzeń). Wykres wygenerowany skryptem \texttt{plots/generate\_real\_pngs.py} z~plików \texttt{results\_v3/unitime\_v2\_*.csv}.}
 \label{fig:speedup}
 \end{figure}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{quality_scaling.png}
-\caption{Jakość rozwiązania (naruszenia miękkie, panel lewy) i~czas wykonania (skala log., panel prawy) vs rozmiar problemu, dla wariantów 1-procesowego i~16-procesowego. Źródło danych: \path{results_v3/unitime_v2_*.csv}.}
+\caption{Jakość rozwiązania (naruszenia miękkie, panel lewy) i~czas wykonania (skala log., panel prawy) vs rozmiar problemu, dla wariantów 1-procesowego i~16-procesowego. Źródło danych: \texttt{results\_v3/unitime\_v2\_*.csv}.}
 \label{fig:quality}
 \end{figure}
 
@@ -1177,7 +1177,7 @@ Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych} --- algorytm zaw
 633  & 14.44$\times$ & 90.3\%  & \textbf{prawie liniowy} z~saturacją (chromosom $\sim$5~KB) \\
 \bottomrule
 \end{tabularx}
-\caption{Reżimy skalowania w~zależności od rozmiaru problemu (źródło: \path{results_v3/unitime_v2_*.csv}, średnie z~3~runów per konfiguracja)}
+\caption{Reżimy skalowania w~zależności od rozmiaru problemu (źródło: \texttt{results\_v3/unitime\_v2\_*.csv}, średnie z~3~runów per konfiguracja)}
 \label{tab:scaling-regime}
 \end{table}
 
