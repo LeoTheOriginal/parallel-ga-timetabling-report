@@ -264,7 +264,7 @@ Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej prz
 16 & \texttt{Zatwierdzony}                & \cellcolor{obsRedBg}nie    & data zatwierdzenia rezerwacji \\
 \bottomrule
 \end{tabularx}
-\caption{Format surowego eksportu UniTime --- wszystkie 16~kolumn w~kolejności występowania w~pliku \texttt{events\_raw.csv} (zweryfikowane przez \texttt{head -1 data/unitime/events\_raw.csv}). Konwerter \texttt{scripts/convert\_simple.py} korzysta z~9~kolumn (zielone), pozostałe 7~jest pomijane.}
+\caption{Format surowego eksportu UniTime --- wszystkie 16~kolumn w~kolejności występowania w~pliku \texttt{events\_raw.csv}. Konwerter \texttt{scripts/convert\_simple.py} korzysta z~9~kolumn (zielone), pozostałe 7~jest pomijane.}
 \end{table}
 
 \subsection{Pipeline konwersji \texttt{convert\_simple.py}}
@@ -275,9 +275,9 @@ Skrypt \texttt{scripts/convert\_simple.py} (243~linie Pythona) realizuje 4-etapo
 \item \textbf{Filtracja strict} --- akceptujemy zdarzenie tylko gdy:
 \begin{itemize}\small
     \item czas startu i końca \emph{dokładnie} pokrywa się z~jednym z~7~bloków AGH 1.5\,h (8:00--9:30, 9:45--11:15, 11:30--13:00, 13:15--14:45, 15:00--16:30, 16:45--18:15, 18:30--20:00);
-    \item budynek $\in \{$D-7, D-10, D-11$\}$ (kampus FiIS);
+    \item budynek $\in \{$D-7, D-10, D-11$\}$;
     \item tytuł nie zaczyna się od: \texttt{egzamin}, \texttt{konsultacje}, \texttt{kolokwium}, \texttt{zaliczenie}, \texttt{odrobienie}, \texttt{odrabianie} (lista \texttt{SKIP\_TYTUL} w~\path{convert_simple.py});
-    \item nie zawiera znaczników: \texttt{[NST]} (niestacjonarne), \texttt{-SZD} (szkoła doktorska), \texttt{FiIS-INNE};
+    \item nie zawiera znaczników: \texttt{[NST]} (niestacjonarne), \texttt{-SZD}, \texttt{FiIS-INNE};
     \item ma znanego prowadzącego (niepusty wiersz).
 \end{itemize}
 Z~\textbf{4\,587 rekordów surowych} po filtracji \emph{strict} pozostaje \textbf{1\,726 zdarzeń} kandydujących (zweryfikowane uruchomieniem konwertera na bieżącym pliku \path{events_raw.csv}).
@@ -294,7 +294,6 @@ Po deduplikacji pozostaje \textbf{633~unikalne zdarzenia tygodniowe}, co odpowia
 \texttt{group\_map}   &: \text{nazwa programu} \to \text{id} \in \{1,\ldots,\mathbf{191}\}
 \end{aligned}
 \]
-Liczby zweryfikowane: \texttt{wc -l data/simple/\{rooms,teachers,groups\}.csv}.
 
 \item \textbf{Generacja grup nadrzędnych dla wykładów} --- jeśli ten sam program akademicki ma wykład wspólny dla wielu podgrup, tworzymy \emph{grupę nadrzędną} (\texttt{parent\_group\_id} $\in$ 192--203). W~bieżącym datasecie konwerter wykrywa \textbf{12 programów} z~wykładami: \texttt{FiIS\,[ESA]}, \texttt{FiIS-OB}, \texttt{FiIS-PCP-1}, \texttt{FiIS-PFM-1}, \texttt{FiIS-PFM-2}, \texttt{FiIS-PFT-1}, \texttt{FiIS-PFT-2}, \texttt{FiIS-PIS-1}, \texttt{FiIS-PIS-2}, \texttt{FiIS-PMB-1}, \texttt{FiIS-PMB-2}, \texttt{FiIS-PNM-1}. Pozwala to wykryć kolizję typu „wykład i~ćwiczenia tej samej podgrupy w~tym samym slocie".
 \end{enumerate}
@@ -324,9 +323,7 @@ Konwersatorium          & 5 \\
 \subsection{Wynik: 4 znormalizowane CSV + plan referencyjny}
 
 \begin{lstlisting}[style=bashstyle, caption={Wywołanie skryptu konwersji}]
-python3 scripts/convert_simple.py \
-    data/unitime/events_raw.csv \
-    data/unitime/ --stats
+python3 scripts/convert_simple.py data/unitime/events_raw.csv data/unitime/ --stats
 \end{lstlisting}
 
 Skrypt produkuje 5~plików w~katalogu wynikowym:
@@ -358,7 +355,7 @@ python3 scripts/convert_simple.py events_raw.csv data/simple_n200/ --subset 200
 python3 scripts/convert_simple.py events_raw.csv data/simple_n400/ --subset 400
 \end{lstlisting}
 
-Każdy podzbiór mapuje encje \emph{tylko obecne} w~próbce (nie kopiuje pełnego słownika z~datasetu pełnego). Liczby zweryfikowane przez \texttt{wc -l data/simple\_n*/\{rooms,teachers,groups,courses\}.csv}:
+Każdy podzbiór mapuje encje \emph{tylko obecne} w~próbce (nie kopiuje pełnego słownika z~datasetu pełnego).
 
 \begin{table}[H]
 \centering\small
