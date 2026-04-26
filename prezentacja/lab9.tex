@@ -59,43 +59,33 @@
 \emph{układanie planu zajęć} --- przypisanie każdego zdarzenia (wykład, ćwiczenia, lab.)
 do konkretnego \emph{slotu czasowego} i~\emph{sali}, tak aby nie powstały konflikty.
 
-\vspace{0.4em}
+\vspace{0.5em}
 \centering
-\begin{tikzpicture}[
-    cell/.style={draw=gray!50, minimum width=1.55cm, minimum height=0.5cm, anchor=north west, font=\tiny},
-    hdr/.style={cell, fill=gray!20, font=\tiny\bfseries},
-    occ/.style={cell, fill=obsBlueBg, font=\tiny\sffamily},
-    lab/.style={cell, fill=obsGreenBg, font=\tiny\sffamily},
-    coll/.style={cell, fill=obsRedBg, font=\tiny\sffamily},
-]
-% Nagłówki dni
-\node[hdr, minimum width=1.1cm] at (0,    0) {Slot};
-\foreach \i/\d in {0/Pn, 1/Wt, 2/Śr, 3/Cz, 4/Pt}
-    \node[hdr] at (1.1+\i*1.55, 0) {\d};
+\renewcommand{\arraystretch}{1.4}
+\setlength{\tabcolsep}{2pt}
+\footnotesize
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\cellcolor{gray!20}\textbf{\scriptsize Slot} &
+\cellcolor{gray!20}\textbf{Pn} &
+\cellcolor{gray!20}\textbf{Wt} &
+\cellcolor{gray!20}\textbf{Śr} &
+\cellcolor{gray!20}\textbf{Cz} &
+\cellcolor{gray!20}\textbf{Pt} \\\hline
+\scriptsize 8:00  & \cellcolor{ok}\scriptsize Algebra\,(D-10) & --- & --- & --- & \cellcolor{ok}\scriptsize Fizyka\,(D-7) \\\hline
+\scriptsize 9:45  & --- & --- & \cellcolor{warning}\scriptsize Prog.\,lab\,(LAB-108) & --- & --- \\\hline
+\scriptsize 11:30 & --- & \cellcolor{ok}\scriptsize SRiR\,wyk\,(D-10) & --- & \cellcolor{warning}\scriptsize SRiR\,lab\,(LAB-204) & --- \\\hline
+\scriptsize 13:15 & \cellcolor{danger}\scriptsize \textbf{!}\,kolizja sali & --- & --- & --- & --- \\\hline
+\scriptsize 15:00 & --- & --- & --- & --- & --- \\\hline
+\scriptsize 16:45 & --- & --- & --- & --- & --- \\\hline
+\scriptsize 18:30 & --- & --- & --- & --- & --- \\\hline
+\end{tabular}
 
-% Sloty (7 bloków)
-\foreach \r/\h in {0/8:00, 1/9:45, 2/11:30, 3/13:15, 4/15:00, 5/16:45, 6/18:30} {
-    \node[cell, minimum width=1.1cm, font=\tiny] at (0, -0.5-\r*0.5) {\h};
-    \foreach \c in {0,...,4} \node[cell] at (1.1+\c*1.55, -0.5-\r*0.5) {};
-}
-
-% Kilka przykładowych zajęć
-\node[occ] at (1.1+0*1.55, -0.5-0*0.5) {Algebra\\\tiny D-10\,225};
-\node[lab] at (1.1+2*1.55, -0.5-1*0.5) {Prog.\,lab\\\tiny LAB\,108};
-\node[occ] at (1.1+1*1.55, -0.5-2*0.5) {SRiR wyk\\\tiny D-10\,205};
-\node[lab] at (1.1+3*1.55, -0.5-2*0.5) {SRiR lab\\\tiny LAB\,204};
-\node[occ] at (1.1+4*1.55, -0.5-3*0.5) {Fizyka\\\tiny D-7\,015};
-
-% Konflikt --- przykład
-\node[coll] at (1.1+0*1.55, -0.5-4*0.5) {\textbf{!}\,kolizja\\\tiny ta sama sala};
-
-\end{tikzpicture}
-
-\vspace{0.3em}
+\vspace{0.5em}
 \centering\footnotesize
-\textcolor{obsBlueFg!90!black}{\rule{0.4cm}{1.2pt}} wykład \quad
-\textcolor{obsGreenFg!90!black}{\rule{0.4cm}{1.2pt}} laboratorium \quad
-\textcolor{obsRedFg!90!black}{\rule{0.4cm}{1.2pt}} naruszenie ograniczenia twardego
+\fcolorbox{black}{ok}{\rule{0pt}{6pt}\rule{6pt}{0pt}} wykład \quad
+\fcolorbox{black}{warning}{\rule{0pt}{6pt}\rule{6pt}{0pt}} laboratorium \quad
+\fcolorbox{black}{danger}{\rule{0pt}{6pt}\rule{6pt}{0pt}} naruszenie ograniczenia twardego
 \end{frame}
 
 \begin{frame}{Skala kombinatoryczna --- dlaczego nie metody dokładne?}
