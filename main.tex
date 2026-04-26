@@ -231,9 +231,132 @@ Ograniczenia twarde muszą być bezwzględnie spełnione:
 \end{enumerate}
 
 % =====================================================================
-% 3. ALGORYTM GENETYCZNY
+% 3. KONWERSJA DANYCH UNITIME -> CSV
+% =====================================================================
+\section{Konwersja i pobieranie danych}
+\label{sec:unitime}
+
+\subsection{Źródło: system UniTime AGH}
+
+Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej przez Wydział FiIS AGH do układania semestralnego planu zajęć. Eksport surowych zdarzeń (semestr letni 2025/26) zawiera $\approx$1058~rekordów w~pliku CSV \texttt{data/unitime/events_raw.csv}: każdy wiersz reprezentuje pojedyncze odbycie zajęć (instancję cykliczną), z~kolumnami:
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Kolumna} & \textbf{Zawartość} \\
+\midrule
+\texttt{Nazwa}            & identyfikator kierunku/programu (np. \texttt{FiIS-PFT-1 EiOpt(1rok)}) \\
+\texttt{Grupa}            & numer podgrupy (1, 1a, 2, \ldots) \\
+\texttt{Typ}              & rodzaj zajęć: Wykład, CWA, CWL, Zajęcia seminaryjne \\
+\texttt{Tytuł}            & nazwa przedmiotu \\
+\texttt{Dzień tygodnia}   & Pn, Wt, Śr, Cz, Pt \\
+\texttt{Ogłoszony pocz./koniec} & godziny w~formacie HH:MM \\
+\texttt{Miejsce}          & nazwa sali z~prefiksem budynku (\texttt{D-10 225}) \\
+\texttt{Pojemność}        & liczba miejsc \\
+\texttt{Prowadzący}       & tytuł naukowy + nazwisko + inicjał \\
+\bottomrule
+\end{tabularx}
+\caption{Format surowego eksportu UniTime}
+\end{table}
+
+\subsection{Pipeline konwersji \texttt{convert\_simple.py}}
+
+Skrypt \texttt{scripts/convert\_simple.py} (243~linie Pythona) realizuje 4-etapowy pipeline:
+
+\begin{enumerate}
+\item \textbf{Filtracja strict} --- akceptujemy zdarzenie tylko gdy:
+\begin{itemize}\small
+    \item czas startu i końca \emph{dokładnie} pokrywa się z~jednym z~7~bloków AGH 1.5\,h (8:00--9:30, 9:45--11:15, 11:30--13:00, 13:15--14:45, 15:00--16:30, 16:45--18:15, 18:30--20:00);
+    \item budynek $\in \{$D-7, D-10, D-11$\}$ (kampus FiIS);
+    \item nie zawiera słów: \texttt{egzamin}, \texttt{kolokwium}, \texttt{konsultacje}, \texttt{zaliczenie};
+    \item nie zawiera znaczników: \texttt{[NST]} (niestacjonarne), \texttt{-SZD} (szkoła doktorska), \texttt{FiIS-INNE};
+    \item ma znanego prowadzącego (niepusty wiersz).
+\end{itemize}
+Z~$\approx$1058~zdarzeń surowych po filtracji pozostaje ok.~700 wpisów stricte semestralnych.
+
+\item \textbf{Deduplikacja} --- wiele wystąpień tego samego cyklicznego zdarzenia (np. wykład co tydzień przez 14~tygodni) redukujemy do pojedynczej instancji tygodniowej. Klucz deduplikacji:
+\[ (\text{nazwa},\ \text{grupa},\ \text{typ},\ \text{tytuł},\ \text{dzień},\ \text{prowadzący}) \]
+
+\item \textbf{Mapowanie encji} --- niezależne słowniki ID dla sal, prowadzących i~grup:
+\[
+\begin{aligned}
+\texttt{room\_map}    &: \text{nazwa sali} \to \text{id} \in \{1,\ldots,41\} \\
+\texttt{teacher\_map} &: \text{nazwisko}   \to \text{id} \in \{1,\ldots,161\} \\
+\texttt{group\_map}   &: (\text{nazwa},\text{grupa}) \to \text{id} \in \{1,\ldots,191\}
+\end{aligned}
+\]
+
+\item \textbf{Generacja grup nadrzędnych dla wykładów} --- jeśli ten sam program akademicki (prefix \texttt{FiIS-PFT-1}) ma wykład wspólny dla wszystkich podgrup, tworzymy \emph{grupę nadrzędną} (\texttt{parent\_group\_id}). Wykład używa tej grupy, podgrupa zachowuje referencję. Pozwala to wykryć kolizję typu „wykład i~ćwiczenia tej samej podgrupy w~tym samym slocie".
+\end{enumerate}
+
+\subsection{Wynik: 4 znormalizowane CSV + plan referencyjny}
+
+\begin{lstlisting}[style=bashstyle, caption={Wywołanie skryptu konwersji}]
+python3 scripts/convert_simple.py \
+    data/unitime/events_raw.csv \
+    data/unitime/ --stats
+\end{lstlisting}
+
+Skrypt produkuje 5~plików w~katalogu wynikowym:
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Plik} & \textbf{Schemat} \\
+\midrule
+\texttt{rooms.csv}             & \texttt{id, name, capacity, is\_lab} \\
+\texttt{teachers.csv}          & \texttt{id, name} \\
+\texttt{groups.csv}            & \texttt{id, name, num\_students} \\
+\texttt{courses.csv}           & \texttt{id, name, teacher\_id, group\_id, hours\_per\_week,} \\
+                               & \texttt{requires\_lab, duration\_slots, parent\_group\_id} \\
+\texttt{original\_schedule.csv} & przypisania UniTime (referencja jakości) \\
+\bottomrule
+\end{tabularx}
+\caption{Pliki wyjściowe konwertera --- format spożywany przez \texttt{io.c} w~implementacji C}
+\end{table}
+
+\subsection{Podzbiory skalowalności (subsetting)}
+
+Do testów skalowalności tworzymy 3~podzbiory deterministyczne (seed=42) bezpośrednio z~pełnego datasetu:
+
+\begin{lstlisting}[style=bashstyle]
+python3 scripts/convert_simple.py events_raw.csv data/simple_n100/ --subset 100
+python3 scripts/convert_simple.py events_raw.csv data/simple_n200/ --subset 200
+python3 scripts/convert_simple.py events_raw.csv data/simple_n400/ --subset 400
+\end{lstlisting}
+
+Każdy podzbiór zachowuje strukturę encji (wszystkie sale, prowadzący, grupy widoczni w~próbce zdarzeń), co pozwala na uczciwe porównanie czasów dla różnych rozmiarów problemu.
+
+% =====================================================================
+% 4. ALGORYTM GENETYCZNY
 % =====================================================================
 \section{Algorytm genetyczny}
+
+\subsection{Idea i intuicja}
+
+Algorytm genetyczny (AG) jest \emph{stochastyczną metaheurystyką} inspirowaną doborem naturalnym. Zamiast deterministycznie konstruować rozwiązanie, AG utrzymuje populację kandydatów (chromosomów) i~iteracyjnie ją doskonali poprzez analogie do mechanizmów ewolucji:
+
+\begin{itemize}
+\item \textbf{Selekcja} --- lepsze chromosomy (niższy fitness) mają większą szansę reprodukcji;
+\item \textbf{Krzyżowanie} --- dwóch rodziców daje potomka łączącego cechy obojga;
+\item \textbf{Mutacja} --- losowe drobne modyfikacje wprowadzają różnorodność i~wyciągają algorytm z~lokalnych minimów;
+\item \textbf{Elityzm} --- najlepszy osobnik trafia do następnego pokolenia bez zmian, gwarantując monotoniczność procesu.
+\end{itemize}
+
+Dla UCTP --- problemu NP-trudnego o~rozmiarze przestrzeni rozwiązań rzędu $(\text{slots}\times\text{rooms})^{\text{events}} = (35\times41)^{633} \approx 10^{2000}$ --- klasyczne metody dokładne (branch~\&~bound, programowanie całkowitoliczbowe) nie skalują się. AG daje rozwiązania \emph{wystarczająco dobre} (feasible + zoptymalizowane miękkie) w~rozsądnym czasie.
+
+\textbf{Cykl życia jednego pokolenia} (slajd~\ref{fig:ga-operators}):
+\[
+\underbrace{\text{Populacja}_t}_{\text{N osobników}}
+\xrightarrow{\text{selekcja}}
+\text{rodzice}
+\xrightarrow{\text{cross+mut}}
+\text{potomkowie}
+\xrightarrow{\text{repair}}
+\underbrace{\text{Populacja}_{t+1}}_{\text{N osobników}}
+\]
 
 \subsection{Kodowanie chromosomu}
 
@@ -426,7 +549,45 @@ if (global_stop) break;
 
 \subsection{Generator liczb pseudolosowych}
 
-PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \texttt{initseq = rank}.
+PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \texttt{initseq = rank}. Każdy rank ma niezależny strumień losowy zapewniający nieskorelowane subpopulacje --- klucz jakościowy modelu wyspowego.
+
+\subsection{Wykorzystane operacje MPI --- mapa „gdzie i kiedy"}
+\label{sec:mpi-ops}
+
+Dokładny inwentarz wszystkich miejsc w~kodzie, w~których wywołujemy MPI, wraz z~częstotliwością i~rozmiarem przesyłanych danych:
+
+\begin{table}[H]
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{>{\ttfamily}l X l l r}
+\toprule
+\textbf{Prymityw}      & \textbf{Cel}                                            & \textbf{Plik:linia}        & \textbf{Częstotliwość}   & \textbf{Payload} \\
+\midrule
+MPI\_Init              & start środowiska MPI                                    & \texttt{main.c:25}         & 1$\times$ na uruchomienie & --- \\
+MPI\_Comm\_rank/size   & odczyt rank/N                                           & \texttt{main.c:28-29}      & 1$\times$                 & 2 ints \\
+MPI\_Bcast (BYTE)      & dystrybucja \texttt{ProblemData} z~rank~0               & \texttt{main.c:107}        & 1$\times$                 & $\sim$2.4~MB$^*$ \\
+MPI\_Barrier           & synchronizacja przed pomiarem czasu                     & \texttt{main.c:139}        & 1$\times$                 & --- \\
+MPI\_Wtime             & pomiar wall-clock (start/stop)                          & \texttt{main.c:140,157}    & 2$\times$                 & double \\
+MPI\_Sendrecv          & migracja pierścieniowa (best $\to$ sąsiad)              & \texttt{ga.c:200}          & co 50 pokoleń             & $n_e \cdot 8$~B \\
+MPI\_Allreduce (MAX)   & synchroniczna terminacja (OR semantics)                 & \texttt{ga.c:367}          & co pokolenie              & 1 int \\
+MPI\_Allreduce (MINLOC)& globalny best --- $(\text{fitness}, \text{rank})$       & \texttt{main.c:165}        & 1$\times$ na końcu        & 2 ints \\
+MPI\_Send/Recv         & transfer chromosomu zwycięzcy do rank~0                 & \texttt{main.c:177-193}    & $\leq 2\times$            & $n_e \cdot 8$~B \\
+MPI\_Finalize          & zamknięcie środowiska                                   & \texttt{main.c:213}        & 1$\times$                 & --- \\
+\bottomrule
+\end{tabularx}
+\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} = stałe tablice z~\texttt{types.h} (\texttt{MAX\_ROOMS+TEACHERS+GROUPS+COURSES+EVENTS}). $n_e$ = liczba zdarzeń (do~1058 w~datasecie pełnym).}
+\label{tab:mpi-inventory}
+\end{table}
+
+\noindent\textbf{Klasy wzorców komunikacji:}
+\begin{itemize}\small
+\item \textbf{One-to-all (broadcast)} --- \texttt{MPI\_Bcast} raz na starcie. Implementacja MPICH używa drzewa binomialnego: $O(\log N)$ kroków.
+\item \textbf{Peer-to-peer (point-to-point)} --- \texttt{MPI\_Sendrecv} w~migracji. Każdy rank wysyła do~$(r{+}1) \bmod N$ i~odbiera od~$(r{-}1{+}N) \bmod N$ \emph{atomowo} --- gwarantuje brak deadlocku przy synchronicznej migracji.
+\item \textbf{All-to-all (collective reductions)} --- \texttt{MPI\_Allreduce}. Z~\texttt{MPI\_MAX} (terminacja) i~\texttt{MPI\_MINLOC} (globalny best). Złożoność $O(\log N)$ z~drzewem rekursywnej redukcji.
+\end{itemize}
+
+\noindent\textbf{Frakcja sekwencyjna (Amdahl):}
+Przy 16 wyspach pętla GA dla $n_e=1058$ zdarzeń wykonuje 500 pokoleń~$\times$~1~Allreduce + 10~migracji~=~510~synchronizacji w~ciągu $\sim$10~sekund. Pojedyncza synchronizacja Allreduce na 16 nodach $<$~1~ms, czyli całkowity narzut MPI~$\approx$~0.5~s ($\approx$~5\% czasu pętli) --- co potwierdza zmierzony empirycznie współczynnik $f \approx 0.04$ (sekcja~\ref{sec:wydajnosc}).
 
 % =====================================================================
 % 5. SCHEMAT BLOKOWY
@@ -664,9 +825,147 @@ PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \tex
 \end{figure}
 
 % =====================================================================
-% 6. WYNIKI
+% 6. WEJŚCIE / WYJŚCIE (I/O)
+% =====================================================================
+\section{Wejście i wyjście (I/O)}
+\label{sec:io}
+
+\subsection{Wczytywanie danych --- pipeline rank~0}
+
+Sekwencja wczytywania zdefiniowana w~\texttt{main.c:42-104}, parsing w~\texttt{io.c}:
+
+\begin{enumerate}
+\item \textbf{Argument CLI} --- katalog danych z~\texttt{argv[1]} (domyślnie \texttt{data/}). Dzięki temu jeden binarny obraz obsługuje wszystkie 4~datasety (\texttt{simple\_n100/200/400/}, \texttt{unitime/}).
+\item \textbf{Cztery wywołania \texttt{load\_*}} --- każde otwiera plik, pomija nagłówek, parsuje wiersze przez \texttt{fgets} + \texttt{strtok} (rozdzielnik~\texttt{,}), trimuje białe znaki:
+\begin{itemize}\small
+    \item \texttt{load\_rooms("rooms.csv")}     $\to$ \texttt{Room data.rooms[MAX\_ROOMS]}
+    \item \texttt{load\_teachers("teachers.csv")}$\to$ \texttt{Teacher data.teachers[MAX\_TEACHERS]}
+    \item \texttt{load\_groups("groups.csv")}    $\to$ \texttt{StudentGroup data.groups[MAX\_GROUPS]}
+    \item \texttt{load\_courses("courses.csv")}  $\to$ \texttt{Course data.courses[MAX\_COURSES]}
+\end{itemize}
+Każda funkcja zwraca liczbę wczytanych rekordów lub~$-1$ przy błędzie. Błąd $\Rightarrow$ \texttt{MPI\_Abort(1)} (synchroniczne zakończenie wszystkich rankow).
+
+\item \textbf{Ekspansja kursów do zdarzeń} --- \texttt{expand\_events(\&data)}. Kurs typu \texttt{hours\_per\_week=4} generuje 4~niezależne zdarzenia o~tym samym \texttt{course\_id}. Funkcja zwraca \texttt{data.num\_events} (max~$\sim$2000).
+
+\item \textbf{Walidacja na rank~0} --- \texttt{print\_summary(\&data)} wypisuje liczby encji, które rank~0 widzi przed broadcastem (sanity check).
+\end{enumerate}
+
+\subsection{Dystrybucja danych przez MPI}
+
+Po załadowaniu rank~0 broadcastuje strukturę \texttt{ProblemData} (alokowaną \texttt{static} aby uniknąć przepełnienia stosu):
+
+\begin{lstlisting}[style=cstyle, caption={Broadcast struktury problemu (main.c:107)}]
+/* ProblemData on ALL ranks (static to avoid stack overflow) */
+static ProblemData data;
+memset(&data, 0, sizeof(data));
+/* ... rank 0 fills `data` ... */
+MPI_Bcast(&data, sizeof(ProblemData), MPI_BYTE, 0, MPI_COMM_WORLD);
+assert(data.num_events > 0);
+\end{lstlisting}
+
+\textbf{Dlaczego \texttt{MPI\_BYTE}, a~nie \texttt{MPI\_Type\_struct}?} \texttt{ProblemData} jest płaską strukturą bez wskaźników (tablice o~stałym rozmiarze), klaster jest homogeniczny (16~$\times$~x86\_64), więc transfer bajtowy jest poprawny i~prostszy w~implementacji.
+
+\subsection{Wyjście --- 3 formaty}
+
+Po zakończeniu GA i~zebraniu globalnego best, rank~0 zapisuje 3~różne formaty wyjściowe:
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{lll>{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Plik} & \textbf{Format} & \textbf{Producent} & \textbf{Konsument / cel} \\
+\midrule
+\texttt{timetable.txt}            & TXT human-readable      & rank~0 & szybka inspekcja: siatka dzień $\times$ blok per grupa \\
+\texttt{schedule.csv}             & CSV maszynowy           & rank~0 & wizualizacja w~\texttt{webapp.html}, walidacja \\
+\texttt{convergence\_rank\textit{N}.csv} & CSV per rank      & każdy rank & wykres konwergencji w~gnuplot (per wyspa) \\
+\bottomrule
+\end{tabularx}
+\caption{Pliki wyjściowe i~ich konsumenci}
+\label{tab:io-outputs}
+\end{table}
+
+\textbf{\texttt{convergence\_rank\textit{N}.csv}} pisany jest \emph{w~trakcie} pętli GA przez każdy rank niezależnie (\texttt{ga.c:285,322}) --- jeden wiersz na pokolenie:
+
+\begin{lstlisting}[style=bashstyle, caption={Format pliku konwergencji}]
+generation,best_hard,best_soft,best_fitness,avg_fitness,worst_fitness
+0,12,847,12847,15234.50,18901
+1,11,832,11832,14987.25,18745
+...
+\end{lstlisting}
+
+Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obserwować efekt migracji (skoki fitness po~50,~100,~\ldots~pokoleniach).
+
+\subsection{Diagram przepływu danych I/O}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    src/.style={draw, rounded corners=4pt, fill=obsGreenBg, draw=obsGreenFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    proc/.style={draw, rounded corners=4pt, fill=obsBlueBg, draw=obsBlueFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    mpiop/.style={draw, rounded corners=4pt, fill=obsAmberBg, draw=obsAmberFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick, dashed},
+    out/.style={draw, rounded corners=4pt, fill=obsOrangeBg, draw=obsOrangeFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    arr/.style={-{Stealth[length=2.5mm]}, thick},
+    arrlbl/.style={font=\scriptsize\itshape, fill=white, inner xsep=2pt, inner ysep=1pt}
+]
+
+% Layer 1: UniTime source
+\node[src] (raw)    at (0, 4)   {\texttt{events\_raw.csv}\\\tiny ($\sim$1058 wierszy)};
+
+% Layer 2: Python converter
+\node[proc] (conv)  at (3.5, 4) {\texttt{convert\_simple.py}\\\tiny strict filter + dedup};
+
+% Layer 3: 4 normalized CSV
+\node[src, minimum width=1.7cm] (rooms)    at (7,    5) {\texttt{rooms.csv}};
+\node[src, minimum width=1.7cm] (teachers) at (7,    4.2) {\texttt{teachers.csv}};
+\node[src, minimum width=1.7cm] (groups)   at (7,    3.4) {\texttt{groups.csv}};
+\node[src, minimum width=1.7cm] (courses)  at (7,    2.6) {\texttt{courses.csv}};
+
+% Layer 4: rank 0 loads + builds ProblemData
+\node[proc, minimum width=2.7cm] (load) at (10.5, 4) {\texttt{io.c}\\\tiny load\_*() + expand};
+\node[proc] (data) at (14, 4) {\texttt{ProblemData}\\\tiny rank 0};
+
+% Layer 5: MPI broadcast
+\node[mpiop] (bcast) at (14, 1.5) {\texttt{MPI\_Bcast}\\\tiny BYTE, 1$\times$};
+
+% Layer 6: All ranks
+\node[proc, minimum width=4cm, minimum height=1.2cm] (allranks) at (14, -1) {Rank 0..N-1\\\tiny GA loop + migration + reduce};
+
+% Layer 7: outputs
+\node[out, minimum width=2cm] (timetable)   at (8.5, -1) {\texttt{timetable}\\\texttt{.txt}};
+\node[out, minimum width=2cm] (schedule)    at (8.5, -2.2) {\texttt{schedule}\\\texttt{.csv}};
+\node[out, minimum width=2cm] (convergence) at (8.5, 0.2) {\texttt{convergence}\\\texttt{\_rankN.csv}};
+
+% Layer 8: tools
+\node[font=\scriptsize, gray!60!black, anchor=north] at (8.5, -3) {webapp.html · gnuplot};
+
+% Arrows
+\draw[arr] (raw)      -- node[arrlbl, above] {Python} (conv);
+\draw[arr] (conv.east) -- ++(0.5, 0) |- (rooms.west);
+\draw[arr] (conv.east) -- ++(0.5, 0) |- (teachers.west);
+\draw[arr] (conv.east) -- ++(0.5, 0) |- (groups.west);
+\draw[arr] (conv.east) -- ++(0.5, 0) |- (courses.west);
+\draw[arr] (rooms.east)    -- ++(0.3, 0) |- (load.west);
+\draw[arr] (teachers.east) -- ++(0.3, 0) |- (load.west);
+\draw[arr] (groups.east)   -- ++(0.3, 0) |- (load.west);
+\draw[arr] (courses.east)  -- ++(0.3, 0) |- (load.west);
+\draw[arr] (load) -- (data);
+\draw[arr] (data) -- node[arrlbl, right] {rank 0} (bcast);
+\draw[arr] (bcast) -- node[arrlbl, right] {wszystkie ranki} (allranks);
+\draw[arr] (allranks.west) -- node[arrlbl, above] {rank 0} (timetable.east);
+\draw[arr] (allranks.west) -- ++(-1, 0) |- (schedule.east);
+\draw[arr] (allranks.west) -- ++(-1, 0) |- (convergence.east);
+
+\end{tikzpicture}
+\caption{Pełny przepływ danych --- od surowego eksportu UniTime do plików wynikowych. Zielone bloki~=~dane (CSV), niebieskie~=~przetwarzanie, żółte przerywane~=~komunikacja MPI, pomarańczowe~=~wyjście.}
+\label{fig:io-flow}
+\end{figure}
+
+% =====================================================================
+% 7. WYNIKI
 % =====================================================================
 \section{Wyniki}
+\label{sec:wydajnosc}
 
 \subsection{Przyspieszenie (speedup)}
 
@@ -778,13 +1077,70 @@ Każdy pomiar obejmuje czas GA + local search.
 \label{fig:quality}
 \end{figure}
 
-\subsection{Analiza}
+\subsection{Analiza wydajności}
 
-Przyspieszenie ograniczone prawem Amdahla: $S(p) = \frac{1}{f + \frac{1-f}{p}}$, gdzie $f$ --- frakcja sekwencyjna. Dla 100 zdarzeń: $f \approx 0.042$.
+\subsubsection*{Prawo Amdahla --- teoretyczna górna granica}
 
-Dla 200--400 zdarzeń uzyskano przyspieszenie \textbf{super-liniowe} ($S_{16} = 24.55\times$ i~$28.73\times$) --- efekt wielowyspowej eksploracji: 16 subpopulacji przeszukuje różne regiony, migracja wymienia dobre cechy. Dla pełnego datasetu (1058 zdarzeń) $S_{16} \approx 20\times$ --- narzut komunikacji rośnie z~chromosomem (8.3~KB/migrację).
+Klasyczne prawo Amdahla wyznacza maksymalne teoretyczne przyspieszenie dla algorytmu o~niezerowej frakcji sekwencyjnej $f$:
+\[
+S(p) = \frac{1}{f + \frac{1-f}{p}},
+\qquad
+\lim_{p \to \infty} S(p) = \frac{1}{f}.
+\]
+Frakcja $f$ obejmuje: jednorazowe wczytanie CSV i~broadcast \texttt{ProblemData} z~rank~0, finalne \texttt{Allreduce(MINLOC)} + transfer chromosomu zwycięzcy, plus per-pokoleniowe \texttt{Allreduce(MAX)}. Dopasowanie do pomiarów empirycznych dla 100 zdarzeń daje $f \approx 0.042$, co implikuje teoretyczne $S_\infty = 1/0.042 \approx 24\times$.
 
-Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych}. Naruszenia miękkie niższe w~wariancie równoległym (tab.~\ref{tab:speedup400}: 675 vs 645).
+\subsubsection*{Super-liniowość --- $S_{16} > 16\times$}
+
+Dla 200 i~400 zdarzeń obserwujemy \emph{przyspieszenie super-liniowe} (przekroczenie liczby procesów):
+\[
+S_{16}(200) = 24.55\times,\qquad S_{16}(400) = 28.73\times.
+\]
+To zjawisko wykracza poza klasyczne prawo Amdahla i~wymaga osobnego wyjaśnienia. W~modelach wyspowych GA występują dwa zazębiające się mechanizmy:
+
+\begin{enumerate}
+\item \textbf{Wielowyspowa eksploracja} --- 16~niezależnych populacji startuje z~różnych losowych punktów przestrzeni rozwiązań (niezależne PCG32, \texttt{initseq=rank}). Każda eksploruje \emph{inny} region. Pojedynczy GA z~jedną populacją 200~osobników badałby zaledwie jeden region; 16~wysp z~populacją 12-13~każda --- 16~różnych regionów. Algorytm wyspowy nie jest tu „tym samym GA podzielonym na 16", lecz \emph{innym algorytmem} o~lepszych właściwościach jakościowych.
+
+\item \textbf{Migracja jako wymiana wiedzy} --- co 50~pokoleń najlepszy osobnik z~każdej wyspy trafia do sąsiada w~pierścieniu. Dobre cechy genetyczne (np.~udane przypisanie 50\% zdarzeń) propagują się po topologii, a~lokalne minima różnych wysp wzajemnie się wybijają. Średnia jakość per pokolenie rośnie szybciej niż w~pojedynczej populacji.
+\end{enumerate}
+
+\subsubsection*{Spadek dla $n_e=1058$ --- narzut komunikacji}
+
+Pełny dataset (1058~zdarzeń) ma niższy speedup ($S_{16} = 19.59\times$) niż~400 ($28.73\times$). Powód: \emph{narzut komunikacji rośnie z~rozmiarem chromosomu}.
+\[
+\text{payload migracji} = n_e \cdot 8\,\text{B} = 1058 \cdot 8\,\text{B} = 8.46\,\text{KB}\quad
+\text{(vs 3.2 KB dla }n_e{=}400\text{)}
+\]
+Co~50~pokoleń każdy z~16~rankow wysyła i~odbiera 8.46~KB; przy 10~migracjach total per node = 169~KB. Choć w~liczbach absolutnych to mało, latencja ringu rośnie z~$N$ ($O(N)$ dla synchronicznego \texttt{Sendrecv}), co dla $n_e=1058$ przeważa korzyść z~wielowyspowej eksploracji.
+
+\subsubsection*{Wpływ równoległości na jakość rozwiązania}
+
+Speedup nie jest jedynym efektem zrównoleglenia --- dla 400~zdarzeń wariant 16-wyspowy daje też \emph{lepsze rozwiązanie miękkie}:
+\[
+\text{soft}(T_1) = 675,\qquad \text{soft}(T_{16}) = 645
+\quad (-30 \text{ kar, } -4.4\%)
+\]
+Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych} --- algorytm zawsze produkuje plan \emph{wykonalny}. Różnica w~jakości miękkiej oznacza, że Island Model nie tylko liczy szybciej, ale eksploruje skuteczniej.
+
+\subsubsection*{Charakterystyka skalowania}
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{rrrrX}
+\toprule
+\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{$S_{\infty}$ Amdahl} & \textbf{$f$} & \textbf{Charakter} \\
+\midrule
+100  & 11.96$\times$ & 24$\times$  & 0.042  & \textbf{podliniowy} (wysoki narzut przy małej pracy/wyspie) \\
+200  & 24.55$\times$ & ---         & ---    & \textbf{super-liniowy} (eksploracja $>$ narzut) \\
+400  & 28.73$\times$ & ---         & ---    & \textbf{super-liniowy} (optymalny punkt) \\
+1058 & 19.59$\times$ & ---         & ---    & \textbf{liniowy z~saturacją} (chromosom $\sim$8.5 KB) \\
+\bottomrule
+\end{tabularx}
+\caption{Reżimy skalowania w~zależności od rozmiaru problemu}
+\label{tab:scaling-regime}
+\end{table}
+
+\textbf{Wniosek inżynierski:} dla projektu UCTP optymalnym punktem jest $n_e \in [200, 400]$ przy $N=16$. Mniejsze instancje są ograniczone przez stałe koszty komunikacji; większe --- przez payload migracji.
 
 % =====================================================================
 % 7. STRUKTURA KODU ŹRÓDŁOWEGO
