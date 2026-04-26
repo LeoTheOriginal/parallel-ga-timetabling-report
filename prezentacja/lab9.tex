@@ -98,32 +98,34 @@ i minimalizując karę za miękkie.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{frame}{Pipeline danych: UniTime $\to$ 4 CSV}
-\textbf{Źródło:} produkcyjny eksport \texttt{events\_raw.csv} z~UniTime AGH
-($\sim$1058 wierszy, 16 kolumn).
+\textbf{Źródło:} produkcyjny eksport \texttt{events\_raw.csv} z~UniTime AGH ---
+\textbf{8\,283 linii} fizycznych, \textbf{4\,587 logicznych rekordów} CSV
+(weryfikacja: \texttt{wc -l} + \texttt{csv.reader}).
 
-\vspace{0.4em}
+\vspace{0.3em}
 \textbf{\texttt{convert\_simple.py}} (243 LoC) --- 4-etapowy pipeline:
 
 \begin{enumerate}\small
     \item \textbf{Filtr strict 1.5h} --- akceptujemy tylko zdarzenia
-          dokładnie pokrywające 7 standardowych bloków AGH
+          dokładnie pokrywające 7 bloków AGH
           (8:00--9:30, \ldots, 18:30--20:00) w~budynkach D-7/D-10/D-11.
           Odsiewamy egzaminy, kolokwia, NST, szkołę doktorską.
-    \item \textbf{Deduplikacja} --- tygodniowe powtórzenia (14$\times$ wykład)
-          do pojedynczej instancji. Klucz: (nazwa, grupa, typ, tytuł, dzień, prowadzący).
-    \item \textbf{Mapowanie encji} --- niezależne ID dla sal (1--41),
-          prowadzących (1--161), grup (1--191).
-    \item \textbf{Grupy nadrzędne wykładów} --- prefix programu
-          (np.~\texttt{FiIS-PFT-1}) staje się \emph{parent\_group} dla
+          \textbf{$\to$~1\,726 zdarzeń kandydujących}
+    \item \textbf{Deduplikacja} (\texttt{-{}-no-grupa}) --- tygodniowe
+          powtórzenia (14$\times$ wykład) do pojedynczej instancji.
+          \textbf{$\to$~633 unikalne zdarzenia tygodniowe}
+    \item \textbf{Mapowanie encji} --- ID dla \textbf{41 sal},
+          \textbf{161 prowadzących}, \textbf{191 grup}.
+    \item \textbf{Grupy nadrzędne wykładów} --- 12 programów (\texttt{FiIS-PFT-1},
+          \texttt{FiIS-OB}, \ldots) z~\texttt{parent\_group\_id} dla
           wykrywania kolizji wykład $\times$ ćwiczenia podgrupy.
 \end{enumerate}
 
-\vspace{0.4em}
+\vspace{0.2em}
 \centering
-\fcolorbox{black}{ok}{\parbox{0.85\textwidth}{\centering\small
-\textbf{Wynik:} 4 znormalizowane CSV (\texttt{rooms}, \texttt{teachers},
-\texttt{groups}, \texttt{courses}) + plan referencyjny UniTime.\\
-Te same 4 pliki spożywa \texttt{io.c} bez zmian, dla wszystkich datasetów.
+\fcolorbox{black}{ok}{\parbox{0.9\textwidth}{\centering\scriptsize
+Liczby zweryfikowane uruchomieniem konwertera na bieżącym pliku
+\texttt{events\_raw.csv} oraz \texttt{wc -l data/simple/*.csv}.
 }}
 \end{frame}
 
@@ -139,18 +141,29 @@ python3 scripts/convert_simple.py events_raw.csv \
         data/simple_n400/ --subset 400 --seed 42
 \end{lstlisting}
 
-\vspace{0.5em}
+\vspace{0.4em}
+\textbf{Realne rozmiary encji per dataset} (\texttt{wc -l data/simple\_n*/}):
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Zdarzenia} & \textbf{Sale} & \textbf{Prowadzący} & \textbf{Grupy} \\
+\midrule
+\path{simple_n100/} & 100 & 27  & 70  & 70  \\
+\path{simple_n200/} & 200 & 32  & 106 & 116 \\
+\path{simple_n400/} & 400 & 37  & 144 & 164 \\
+\path{simple/}      & 633 & 41  & 161 & 191 \\
+\bottomrule
+\end{tabular}
+
+\vspace{0.4em}
 \begin{itemize}\small
-    \item \textbf{Deterministyczne} --- seed=42 gwarantuje powtarzalność
-    \item \textbf{Stratyfikowane} --- każdy podzbiór zachowuje wszystkie
-          encje (sale, prowadzący, grupy), nie tylko zdarzenia
-    \item \textbf{Sprawiedliwe porównanie} --- czas $T_1$ vs $T_{16}$
-          mierzymy dla \emph{tego samego} problemu, nie różnych
+    \item \textbf{Deterministyczne} --- \texttt{-{}-seed 42} gwarantuje powtarzalność
+    \item \textbf{Subset stratyfikowany po zdarzeniach} --- mniejszy dataset ma proporcjonalnie mniej encji (bo encje wybierane tylko jeśli pojawiają się w~próbce)
 \end{itemize}
 
-\vspace{0.6em}
+\vspace{0.3em}
 \centering\small
-Stąd 4 datasety w~tabeli wyników: \textbf{100, 200, 400, 1058} (UniTime full).
+\textbf{4 datasety w~tabeli wyników: 100, 200, 400, 633} (pełny \path{data/simple/}).
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -414,74 +427,79 @@ po runie mamy 16 trajektorii fitness na jednym wykresie.
 \section{Wyniki}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}{Przyspieszenie na klastrze AGH (5 runów / konfigurację)}
+\begin{frame}{Przyspieszenie na klastrze AGH (3 runy / konfigurację)}
 \centering\small
 \renewcommand{\arraystretch}{1.2}
 \begin{tabular}{rrrrrr}
 \toprule
 \textbf{Zdarzenia} & \textbf{$T_1$ [s]} & \textbf{$T_4$ [s]} & \textbf{$T_8$ [s]} & \textbf{$T_{16}$ [s]} & \textbf{$S_{16}$} \\
 \midrule
-100              & 3.20    & 0.79  & 0.44  & 0.27 & \cellcolor{ok}\textbf{11.96$\times$} \\
-200              & 15.03   & 2.38  & 1.11  & 0.61 & \cellcolor{ok}\textbf{24.55$\times$} $\uparrow$ \\
-400              & 53.44   & 10.38 & 4.60  & 1.86 & \cellcolor{ok}\textbf{28.73$\times$} $\uparrow$ \\
-1058 (UniTime)   & 189.94  & 49.34 & 23.57 & 9.70 & \cellcolor{ok}\textbf{19.59$\times$} \\
+100              &   2.31  &  0.64  &  0.43  &  0.37 & \cellcolor{warning}\textbf{6.32$\times$} \\
+200              &   5.80  &  1.14  &  0.68  &  0.52 & \cellcolor{warning}\textbf{11.18$\times$} \\
+400              &  24.46  &  3.40  &  1.64  &  1.09 & \cellcolor{ok}\textbf{22.38$\times$} $\uparrow$ \\
+633 (pełny)      & 159.96  & 34.62  & 17.32  & 11.08 & \cellcolor{ok}\textbf{14.44$\times$} \\
 \bottomrule
 \end{tabular}
 
-\vspace{0.7em}
+\vspace{0.4em}
+\centering\scriptsize
+Źródło: \path{results_v3/unitime_v2_n100/200/400/nogrupa.csv} (3 runy avg).
+
+\vspace{0.4em}
 \begin{itemize}\small
-    \item \textbf{0 naruszeń twardych} we wszystkich konfiguracjach $\to$ feasible plan zawsze
-    \item \textbf{Super-liniowy speedup} ($S_{16}>16\times$) dla 200 i 400 zdarzeń ---
-          efekt wielowyspowej eksploracji + wymiany dobrych cech przez migrację
-    \item Naruszenia miękkie też niższe równolegle: 400~zdarzeń: 675 $\to$ 645 (1$\to$16~proc.)
+    \item \textbf{0 naruszeń twardych} we wszystkich 16 konfiguracjach $\to$ feasible plan zawsze
+    \item \textbf{Super-liniowy speedup} dla $n_e{=}400$ ($S_{16}{=}22.4\times$, eff~140\%) ---
+          punkt optymalny: dość pracy/wyspę, mały chromosom (3.2 KB)
+    \item Soft viol. dla pełnego datasetu spadają z~równoległością: $T_1{=}2835 \to T_{16}{=}2818$
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Wykres przyspieszenia}
 \centering
 \includegraphics[height=0.78\textheight]{speedup.png}
+
+\vspace{-0.3em}
+\centering\scriptsize\itshape
+Wykres historyczny z~wcześniejszej rundy benchmarków (\path{figures/speedup.png}).
 \end{frame}
 
-\begin{frame}{Konwergencja per wyspa --- 16 wysp, 1058 zdarzeń}
+\begin{frame}{Konwergencja per wyspa --- 16 wysp}
 \centering
 \includegraphics[height=0.78\textheight]{convergence.png}
+
+\vspace{-0.3em}
+\centering\scriptsize\itshape
+Wykres historyczny (\path{figures/convergence.png}).
 \end{frame}
 
 \begin{frame}{Analiza wydajności --- prawo Amdahla i super-liniowość}
 \textbf{Amdahl:} $S(p) = \dfrac{1}{f + \frac{1-f}{p}},\quad S_\infty = \dfrac{1}{f}$
 
-Dla $n_e=100$: $f \approx 0.042 \Rightarrow S_\infty \approx 24\times$.
+Dla $n_e=100$: $f \approx 0.10 \Rightarrow S_\infty \approx 10\times$ (saturacja przy małej pracy).
 
 \vspace{0.4em}
 \centering\small
 \renewcommand{\arraystretch}{1.15}
-\begin{tabular}{rrrrl}
+\begin{tabular}{rrrl}
 \toprule
-\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{$S_\infty$} & \textbf{Reżim} \\
+\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{Eff.} & \textbf{Reżim} \\
 \midrule
-100  & 11.96$\times$ & 24$\times$ & \cellcolor{warning}podliniowy --- mała praca/wyspę \\
-200  & 24.55$\times$ & ---        & \cellcolor{ok}\textbf{super-liniowy} \\
-400  & 28.73$\times$ & ---        & \cellcolor{ok}\textbf{super-liniowy} (optimum) \\
-1058 & 19.59$\times$ & ---        & \cellcolor{warning}saturacja --- payload 8.5 KB \\
+100  &  6.32$\times$ &  39.5\% & \cellcolor{warning}podliniowy --- mała praca/wyspę \\
+200  & 11.18$\times$ &  69.9\% & \cellcolor{warning}podliniowy ze wzrastającą efektywnością \\
+400  & 22.38$\times$ & 139.9\% & \cellcolor{ok}\textbf{super-liniowy} (optimum) \\
+633  & 14.44$\times$ &  90.3\% & \cellcolor{ok}prawie liniowy z~saturacją (chromosom 5 KB) \\
 \bottomrule
 \end{tabular}
 
-\vspace{0.7em}
-\textbf{Skąd $S_{16} > 16\times$?} Algorytm wyspowy ze migracją to nie
+\vspace{0.5em}
+\textbf{Skąd $S_{16} > 16\times$ dla $n_e{=}400$?} Algorytm wyspowy ze migracją to nie
 „ten sam GA podzielony na N", lecz \emph{inny algorytm} o lepszych właściwościach:
 \begin{itemize}\small
     \item \textbf{Wielowyspowa eksploracja} --- 16 niezależnych populacji
           (PCG32 \texttt{initseq=rank}) startuje z różnych regionów przestrzeni
     \item \textbf{Migracja jako wymiana wiedzy} --- co 50 pokoleń dobre cechy
-          propagują się po pierścieniu, lokalne minima różnych wysp wybijają się wzajemnie
+          propagują się po pierścieniu
 \end{itemize}
-
-\vspace{0.4em}
-\centering
-\fcolorbox{black}{ok}{\parbox{0.85\textwidth}{\centering\scriptsize
-Wariant 16-wyspowy daje też \textbf{lepsze rozwiązanie miękkie}:
-soft$(T_1)=675 \to$ soft$(T_{16})=645$ ($-4.4\%$). Speedup nie jest jedynym efektem.
-}}
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -501,7 +519,7 @@ soft$(T_1)=675 \to$ soft$(T_{16})=645$ ($-4.4\%$). Speedup nie jest jedynym efek
 \textbf{Wnioski techniczne:}
 \begin{itemize}\small
     \item Island Model dobrze skaluje się do $N=16$, narzut komunikacji
-          rośnie z chromosomem ($\sim$8.3 KB na migrację dla 1058 zdarzeń)
+          rośnie z chromosomem ($\sim$5.1 KB na migrację dla pełnego datasetu 633 zdarzeń)
     \item Naruszenia miękkie spadają z liczbą wysp dzięki bogatszej eksploracji
     \item Synchroniczna terminacja przez Allreduce(MAX) eliminuje deadlocki
           przy wczesnej zbieżności jednej wyspy

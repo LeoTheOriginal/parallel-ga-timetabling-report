@@ -177,7 +177,7 @@
 
 Problem układania planu zajęć (UCTP) --- przypisanie zdarzeń do par (slot, sala) z~ograniczeniami --- jest NP-trudny~\cite{banczyk}. Zrównoleglenie algorytmu genetycznego (AG) modelem wyspowym (Island Model) pozwala na równoczesną eksplorację przestrzeni rozwiązań przez niezależne subpopulacje z~migracją~\cite{faris}.
 
-Implementacja: C + MPI, klaster 16 węzłów (sala D-10/204, AGH). Przyspieszenie do $28.73\times$ na 16 procesach.
+Implementacja: C + MPI, klaster 16 węzłów (sala D-10/204, AGH). Najwyższe zmierzone przyspieszenie: $S_{16}=22.38\times$ dla $n_e=400$ zdarzeń (super-liniowe).
 
 % =====================================================================
 % 2. OPIS PROBLEMU
@@ -239,7 +239,7 @@ Ograniczenia twarde muszą być bezwzględnie spełnione:
 
 \subsection{Źródło: system UniTime AGH}
 
-Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej przez Wydział FiIS AGH do układania semestralnego planu zajęć. Eksport surowych zdarzeń (semestr letni 2025/26) zawiera $\approx$1058~rekordów w~pliku CSV \path{data/unitime/events_raw.csv}: każdy wiersz reprezentuje pojedyncze odbycie zajęć (instancję cykliczną), z~kolumnami:
+Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej przez Wydział FiIS AGH do układania semestralnego planu zajęć. Eksport surowych zdarzeń (semestr letni 2025/26) znajduje się w~pliku \path{data/unitime/events_raw.csv} (\textbf{8\,283 linie} fizyczne, \textbf{4\,587 logicznych rekordów} CSV po sparsowaniu wieloliniowych komórek przez \texttt{csv.reader}). Każdy rekord reprezentuje pojedyncze odbycie zajęć (instancję cykliczną w~konkretnym dniu semestru), z~kolumnami:
 
 \begin{table}[H]
 \centering\small
@@ -274,22 +274,46 @@ Skrypt \texttt{scripts/convert\_simple.py} (243~linie Pythona) realizuje 4-etapo
     \item nie zawiera znaczników: \texttt{[NST]} (niestacjonarne), \texttt{-SZD} (szkoła doktorska), \texttt{FiIS-INNE};
     \item ma znanego prowadzącego (niepusty wiersz).
 \end{itemize}
-Z~$\approx$1058~zdarzeń surowych po filtracji pozostaje ok.~700 wpisów stricte semestralnych.
+Z~\textbf{4\,587 rekordów surowych} po filtracji \emph{strict} pozostaje \textbf{1\,726 zdarzeń} kandydujących (zweryfikowane uruchomieniem konwertera na bieżącym pliku \path{events_raw.csv}).
 
-\item \textbf{Deduplikacja} --- wiele wystąpień tego samego cyklicznego zdarzenia (np. wykład co tydzień przez 14~tygodni) redukujemy do pojedynczej instancji tygodniowej. Klucz deduplikacji:
-\[ (\text{nazwa},\ \text{grupa},\ \text{typ},\ \text{tytuł},\ \text{dzień},\ \text{prowadzący}) \]
+\item \textbf{Deduplikacja} --- wiele wystąpień tego samego cyklicznego zdarzenia (np. wykład co tydzień przez 14~tygodni) redukujemy do pojedynczej instancji tygodniowej. Klucz deduplikacji (tryb \texttt{-{}-no-grupa}, jak w~używanym datasecie \path{data/simple/}):
+\[ (\text{nazwa},\ \text{typ},\ \text{tytuł},\ \text{dzień},\ \text{prowadzący}) \]
+Po deduplikacji pozostaje \textbf{633~unikalne zdarzenia tygodniowe}, co odpowiada plikowi \path{data/simple/courses.csv} w~repozytorium.
 
-\item \textbf{Mapowanie encji} --- niezależne słowniki ID dla sal, prowadzących i~grup:
+\item \textbf{Mapowanie encji} --- niezależne słowniki ID dla sal, prowadzących i~grup, generowane przez kolejne wystąpienia w~zdeduplikowanej liście:
 \[
 \begin{aligned}
-\texttt{room\_map}    &: \text{nazwa sali} \to \text{id} \in \{1,\ldots,41\} \\
-\texttt{teacher\_map} &: \text{nazwisko}   \to \text{id} \in \{1,\ldots,161\} \\
-\texttt{group\_map}   &: (\text{nazwa},\text{grupa}) \to \text{id} \in \{1,\ldots,191\}
+\texttt{room\_map}    &: \text{nazwa sali} \to \text{id} \in \{1,\ldots,\mathbf{41}\} \\
+\texttt{teacher\_map} &: \text{nazwisko}   \to \text{id} \in \{1,\ldots,\mathbf{161}\} \\
+\texttt{group\_map}   &: \text{nazwa programu} \to \text{id} \in \{1,\ldots,\mathbf{191}\}
 \end{aligned}
 \]
+Liczby zweryfikowane: \texttt{wc -l data/simple/\{rooms,teachers,groups\}.csv}.
 
-\item \textbf{Generacja grup nadrzędnych dla wykładów} --- jeśli ten sam program akademicki (prefix \texttt{FiIS-PFT-1}) ma wykład wspólny dla wszystkich podgrup, tworzymy \emph{grupę nadrzędną} (\texttt{parent\_group\_id}). Wykład używa tej grupy, podgrupa zachowuje referencję. Pozwala to wykryć kolizję typu „wykład i~ćwiczenia tej samej podgrupy w~tym samym slocie".
+\item \textbf{Generacja grup nadrzędnych dla wykładów} --- jeśli ten sam program akademicki ma wykład wspólny dla wielu podgrup, tworzymy \emph{grupę nadrzędną} (\texttt{parent\_group\_id} $\in$ 192--203). W~bieżącym datasecie konwerter wykrywa \textbf{12 programów} z~wykładami: \texttt{FiIS\,[ESA]}, \texttt{FiIS-OB}, \texttt{FiIS-PCP-1}, \texttt{FiIS-PFM-1}, \texttt{FiIS-PFM-2}, \texttt{FiIS-PFT-1}, \texttt{FiIS-PFT-2}, \texttt{FiIS-PIS-1}, \texttt{FiIS-PIS-2}, \texttt{FiIS-PMB-1}, \texttt{FiIS-PMB-2}, \texttt{FiIS-PNM-1}. Pozwala to wykryć kolizję typu „wykład i~ćwiczenia tej samej podgrupy w~tym samym slocie".
 \end{enumerate}
+
+\paragraph{Rozkład zdarzeń wg typu} (zweryfikowany na \path{data/simple/courses.csv}):
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lr}
+\toprule
+\textbf{Typ zajęć} & \textbf{Liczba} \\
+\midrule
+Wykład                  & 221 \\
+CWA (ćwiczenia audytoryjne)  & 159 \\
+CWL (ćwiczenia laboratoryjne) & 151 \\
+Ćwiczenia projektowe    & 50 \\
+Zajęcia seminaryjne     & 26 \\
+Zajęcia warsztatowe     & 21 \\
+Konwersatorium          & 5 \\
+\midrule
+\textbf{Razem}          & \textbf{633} \\
+\bottomrule
+\end{tabular}
+\caption{Rozkład zdarzeń tygodniowych wg typu}
+\end{table>
 
 \subsection{Wynik: 4 znormalizowane CSV + plan referencyjny}
 
@@ -305,22 +329,22 @@ Skrypt produkuje 5~plików w~katalogu wynikowym:
 \centering\small
 \begin{tabularx}{\textwidth}{lX}
 \toprule
-\textbf{Plik} & \textbf{Schemat} \\
+\textbf{Plik} & \textbf{Schemat (zweryfikowany na \texttt{head -1 data/simple/*.csv})} \\
 \midrule
-\texttt{rooms.csv}             & \texttt{id, name, capacity, is\_lab} \\
-\texttt{teachers.csv}          & \texttt{id, name} \\
-\texttt{groups.csv}            & \texttt{id, name, num\_students} \\
+\texttt{rooms.csv}             & \texttt{id, name, capacity, is\_lab} (4~kolumny, 41~wierszy) \\
+\texttt{teachers.csv}          & \texttt{id, name} (2~kolumny, 161~wierszy) \\
+\texttt{groups.csv}            & \texttt{id, name, num\_students} (3~kolumny, 191~wierszy) \\
 \texttt{courses.csv}           & \texttt{id, name, teacher\_id, group\_id, hours\_per\_week,} \\
-                               & \texttt{requires\_lab, duration\_slots, parent\_group\_id} \\
+                               & \texttt{requires\_lab, duration\_slots} (7~kolumn, 633~wiersze)$^*$ \\
 \texttt{original\_schedule.csv} & przypisania UniTime (referencja jakości) \\
 \bottomrule
 \end{tabularx}
-\caption{Pliki wyjściowe konwertera --- format spożywany przez \texttt{io.c} w~implementacji C}
+\caption{Pliki wyjściowe konwertera --- format spożywany przez \texttt{io.c}. $^*$Plik \path{data/simple/courses.csv} ma 7~kolumn (legacy format); aktualna wersja konwertera generuje dodatkowo 8.~kolumnę \texttt{parent\_group\_id} dla detekcji konfliktów wykład--podgrupa, którą \texttt{io.c:load\_courses} traktuje jako opcjonalną (default 0).}
 \end{table}
 
 \subsection{Podzbiory skalowalności (subsetting)}
 
-Do testów skalowalności tworzymy 3~podzbiory deterministyczne (seed=42) bezpośrednio z~pełnego datasetu:
+Do testów skalowalności tworzymy 3~podzbiory deterministyczne (\texttt{-{}-seed 42}) bezpośrednio z~pełnego datasetu:
 
 \begin{lstlisting}[style=bashstyle]
 python3 scripts/convert_simple.py events_raw.csv data/simple_n100/ --subset 100
@@ -328,7 +352,23 @@ python3 scripts/convert_simple.py events_raw.csv data/simple_n200/ --subset 200
 python3 scripts/convert_simple.py events_raw.csv data/simple_n400/ --subset 400
 \end{lstlisting}
 
-Każdy podzbiór zachowuje strukturę encji (wszystkie sale, prowadzący, grupy widoczni w~próbce zdarzeń), co pozwala na uczciwe porównanie czasów dla różnych rozmiarów problemu.
+Każdy podzbiór mapuje encje \emph{tylko obecne} w~próbce (nie kopiuje pełnego słownika z~datasetu pełnego). Liczby zweryfikowane przez \texttt{wc -l data/simple\_n*/\{rooms,teachers,groups,courses\}.csv}:
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Zdarzenia} & \textbf{Sale} & \textbf{Prowadzący} & \textbf{Grupy} \\
+\midrule
+\path{data/simple_n100/} & 100  & 27  & 70  & 70  \\
+\path{data/simple_n200/} & 200  & 32  & 106 & 116 \\
+\path{data/simple_n400/} & 400  & 37  & 144 & 164 \\
+\path{data/simple/}      & 633  & 41  & 161 & 191 \\
+\bottomrule
+\end{tabular}
+\caption{Rozmiary encji w~każdym datasecie --- mniejsze podzbiory mają proporcjonalnie mniej sal/prowadzących/grup, ponieważ konwerter mapuje tylko encje obecne w~wylosowanej próbce.}
+\label{tab:datasets}
+\end{table>
 
 % =====================================================================
 % 4. ALGORYTM GENETYCZNY
@@ -576,7 +616,7 @@ MPI\_Send/Recv         & transfer chromosomu zwycięzcy do rank~0               
 MPI\_Finalize          & zamknięcie środowiska                                   & \texttt{main.c:213}        & 1$\times$                 & --- \\
 \bottomrule
 \end{tabularx}
-\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} = stałe tablice z~\texttt{types.h} (\texttt{MAX\_ROOMS+TEACHERS+GROUPS+COURSES+EVENTS}). $n_e$ = liczba zdarzeń (do~1058 w~datasecie pełnym).}
+\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} = stałe tablice z~\texttt{types.h} (\texttt{MAX\_ROOMS=150}, \texttt{MAX\_TEACHERS=300}, \texttt{MAX\_GROUPS=1200}, \texttt{MAX\_COURSES=2500}, \texttt{MAX\_EVENTS=2500}). $n_e$ = liczba zdarzeń (do~633 w~bieżącym pełnym datasecie \path{data/simple/}).}
 \label{tab:mpi-inventory}
 \end{table}
 
@@ -588,7 +628,7 @@ MPI\_Finalize          & zamknięcie środowiska                                
 \end{itemize}
 
 \noindent\textbf{Frakcja sekwencyjna (Amdahl):}
-Przy 16 wyspach pętla GA dla $n_e=1058$ zdarzeń wykonuje 500 pokoleń~$\times$~1~Allreduce + 10~migracji~=~510~synchronizacji w~ciągu $\sim$10~sekund. Pojedyncza synchronizacja Allreduce na 16 nodach $<$~1~ms, czyli całkowity narzut MPI~$\approx$~0.5~s ($\approx$~5\% czasu pętli) --- co potwierdza zmierzony empirycznie współczynnik $f \approx 0.04$ (sekcja~\ref{sec:wydajnosc}).
+Przy 16 wyspach pętla GA dla $n_e=633$ zdarzeń (pełny dataset \path{data/simple/}) wykonuje 500 pokoleń~$\times$~1~Allreduce + 10~migracji~=~510~synchronizacji w~ciągu $\sim$11~sekund (zmierzone $T_{16}=11.078$~s, tab.~\ref{tab:speedup633}). Pojedyncza synchronizacja Allreduce na 16~węzłach $<$~1~ms, czyli całkowity narzut MPI~$\approx$~0.5~s ($\approx$~5\% czasu pętli).
 
 % =====================================================================
 % 5. SCHEMAT BLOKOWY
@@ -912,7 +952,7 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 ]
 
 % Layer 1: UniTime source
-\node[src] (raw)    at (0, 4)   {\texttt{events\_raw.csv}\\\tiny ($\sim$1058 wierszy)};
+\node[src] (raw)    at (0, 4)   {\texttt{events\_raw.csv}\\\tiny (4587 rekordów)};
 
 % Layer 2: Python converter
 \node[proc] (conv)  at (3.5, 4) {\texttt{convert\_simple.py}\\\tiny strict filter + dedup};
@@ -972,8 +1012,7 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 
 \subsection{Przyspieszenie (speedup)}
 
-Pomiary na klastrze AGH (węzły stud204-01..stud204-16), 5 uruchomień na konfigurację.
-Każdy pomiar obejmuje czas GA + local search.
+Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \textbf{3 uruchomienia} na konfigurację. Każdy pomiar obejmuje pełny przebieg GA + local search post-processing. Średnie czasy obliczone z plików \path{results_v3/unitime_v2_n*.csv} oraz \path{results_v3/unitime_v2_nogrupa.csv}.
 
 \begin{table}[H]
 \centering
@@ -981,13 +1020,13 @@ Każdy pomiar obejmuje czas GA + local search.
 \toprule
 \textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
 \midrule
-1  & 3.20  & 1.00$\times$  & 0 & 150 \\
-4  & 0.79  & 4.03$\times$  & 0 & 150 \\
-8  & 0.44  & 7.25$\times$  & 0 & 150 \\
-16 & 0.27  & 11.96$\times$ & 0 & 150 \\
+1  & 2.313 & 1.00$\times$  & 0 & 341 \\
+4  & 0.637 & 3.63$\times$  & 0 & 341 \\
+8  & 0.430 & 5.38$\times$  & 0 & 341 \\
+16 & 0.366 & 6.32$\times$  & 0 & 341 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 100 zdarzeń}
+\caption{Przyspieszenie --- 100 zdarzeń (\path{results_v3/unitime_v2_n100.csv})}
 \label{tab:speedup100}
 \end{table}
 
@@ -997,13 +1036,13 @@ Każdy pomiar obejmuje czas GA + local search.
 \toprule
 \textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
 \midrule
-1  & 15.03 & 1.00$\times$  & 0 & 293 \\
-4  & 2.38  & 6.31$\times$  & 0 & 292 \\
-8  & 1.11  & 13.55$\times$ & 0 & 292 \\
-16 & 0.61  & 24.55$\times$ & 0 & 292 \\
+1  & 5.798 & 1.00$\times$  & 0 & 641 \\
+4  & 1.139 & 5.09$\times$  & 0 & 641 \\
+8  & 0.676 & 8.58$\times$  & 0 & 641 \\
+16 & 0.519 & 11.18$\times$ & 0 & 641 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 200 zdarzeń}
+\caption{Przyspieszenie --- 200 zdarzeń (\path{results_v3/unitime_v2_n200.csv})}
 \label{tab:speedup200}
 \end{table}
 
@@ -1013,13 +1052,13 @@ Każdy pomiar obejmuje czas GA + local search.
 \toprule
 \textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
 \midrule
-1  & 53.44  & 1.00$\times$   & 0 & 675 \\
-4  & 10.38  & 5.15$\times$   & 0 & 645 \\
-8  & 4.60   & 11.61$\times$  & 0 & 645 \\
-16 & 1.86   & 28.73$\times$  & 0 & 645 \\
+1  & 24.461 & 1.00$\times$   & 0 & 1291 \\
+4  &  3.397 & 7.20$\times$   & 0 & 1291 \\
+8  &  1.635 & 14.96$\times$  & 0 & 1291 \\
+16 &  1.093 & 22.38$\times$  & 0 & 1291 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 400 zdarzeń}
+\caption{Przyspieszenie --- 400 zdarzeń (\path{results_v3/unitime_v2_n400.csv})}
 \label{tab:speedup400}
 \end{table}
 
@@ -1029,31 +1068,31 @@ Każdy pomiar obejmuje czas GA + local search.
 \toprule
 \textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
 \midrule
-1  & 189.94 & 1.00$\times$   & 0 & 2061 \\
-4  & 49.34  & 3.85$\times$   & 0 & 1976 \\
-8  & 23.57  & 8.06$\times$   & 0 & 1976 \\
-16 & 9.70   & 19.59$\times$  & 0 & 1976 \\
+1  & 159.958 & 1.00$\times$   & 0 & 2835 \\
+4  &  34.621 & 4.62$\times$   & 0 & 2835 \\
+8  &  17.315 & 9.24$\times$   & 0 & 2823 \\
+16 &  11.078 & 14.44$\times$  & 0 & 2818 \\
 \bottomrule
 \end{tabular}
-\caption{Przyspieszenie --- 1058 zdarzeń (pełny dataset)}
-\label{tab:speedup1058}
+\caption{Przyspieszenie --- 633 zdarzeń (pełny dataset \path{data/simple/}; źródło: \path{results_v3/unitime_v2_nogrupa.csv}). Soft~viol.~uśrednione z~3 runów.}
+\label{tab:speedup633}
 \end{table}
 
 \subsection{Zbiorcze porównanie}
 
 \begin{table}[H]
 \centering
-\begin{tabular}{rrrrr}
+\begin{tabular}{rrrrrr}
 \toprule
-\textbf{Zdarzenia} & \textbf{$T_1$ [s]} & \textbf{$T_{16}$ [s]} & \textbf{Speedup $S_{16}$} & \textbf{Hard viol.} \\
+\textbf{Zdarzenia} & \textbf{$T_1$ [s]} & \textbf{$T_{16}$ [s]} & \textbf{$S_{16}$} & \textbf{Eff.} & \textbf{Hard viol.} \\
 \midrule
-100  & 3.20   & 0.27  & 11.96$\times$ & 0 \\
-200  & 15.03  & 0.61  & 24.55$\times$ & 0 \\
-400  & 53.44  & 1.86  & 28.73$\times$ & 0 \\
-1058 & 189.94 & 9.70  & 19.59$\times$ & 0 \\
+100  &   2.313 &  0.366 &  6.32$\times$ & 39.5\% & 0 \\
+200  &   5.798 &  0.519 & 11.18$\times$ & 69.9\% & 0 \\
+400  &  24.461 &  1.093 & 22.38$\times$ & \cellcolor{obsGreenBg}\textbf{139.9\%}$^*$ & 0 \\
+633  & 159.958 & 11.078 & 14.44$\times$ & 90.3\% & 0 \\
 \bottomrule
 \end{tabular}
-\caption{Zbiorcze przyspieszenie --- 1 vs 16 procesów}
+\caption{Zbiorcze przyspieszenie i efektywność (eff.~= $S_{16}/16$) --- 1 vs 16 procesów. $^*$Super-liniowy speedup dla 400 zdarzeń (efektywność~$>$~100\%) --- patrz analiza w~sekcji~\ref{sec:wydajnosc}.}
 \label{tab:speedup-summary}
 \end{table}
 
@@ -1069,7 +1108,7 @@ Każdy pomiar obejmuje czas GA + local search.
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{convergence.png}
-\caption{Konwergencja per wyspa --- 16 wysp, 1058 zdarzeń}
+\caption{Konwergencja per wyspa --- 16 wysp (wykres historyczny z wcześniejszej rundy benchmarków, plik \path{figures/convergence.png})}
 \label{fig:convergence}
 \end{figure}
 
@@ -1090,13 +1129,13 @@ S(p) = \frac{1}{f + \frac{1-f}{p}},
 \qquad
 \lim_{p \to \infty} S(p) = \frac{1}{f}.
 \]
-Frakcja $f$ obejmuje: jednorazowe wczytanie CSV i~broadcast \texttt{ProblemData} z~rank~0, finalne \texttt{Allreduce(MINLOC)} + transfer chromosomu zwycięzcy, plus per-pokoleniowe \texttt{Allreduce(MAX)}. Dopasowanie do pomiarów empirycznych dla 100 zdarzeń daje $f \approx 0.042$, co implikuje teoretyczne $S_\infty = 1/0.042 \approx 24\times$.
+Frakcja $f$ obejmuje: jednorazowe wczytanie CSV i~broadcast \texttt{ProblemData} z~rank~0, finalne \texttt{Allreduce(MINLOC)} + transfer chromosomu zwycięzcy, plus per-pokoleniowe \texttt{Allreduce(MAX)}. Dopasowanie modelu Amdahla do empirycznego $S_{16}=6.32\times$ dla $n_e=100$ daje $f \approx 0.10$, co implikuje teoretyczne $S_\infty \approx 10\times$ --- spójne z~obserwacją, że dla małych instancji speedup nasyca się szybko.
 
-\subsubsection*{Super-liniowość --- $S_{16} > 16\times$}
+\subsubsection*{Super-liniowość --- $S_{16} > 16\times$ dla $n_e=400$}
 
-Dla 200 i~400 zdarzeń obserwujemy \emph{przyspieszenie super-liniowe} (przekroczenie liczby procesów):
+Dla \textbf{400 zdarzeń} obserwujemy przyspieszenie super-liniowe:
 \[
-S_{16}(200) = 24.55\times,\qquad S_{16}(400) = 28.73\times.
+S_{16}(400) = 22.38\times \quad (\text{efektywność } 22.38/16 = 1.40 = 140\%)
 \]
 To zjawisko wykracza poza klasyczne prawo Amdahla i~wymaga osobnego wyjaśnienia. W~modelach wyspowych GA występują dwa zazębiające się mechanizmy:
 
@@ -1106,21 +1145,21 @@ To zjawisko wykracza poza klasyczne prawo Amdahla i~wymaga osobnego wyjaśnienia
 \item \textbf{Migracja jako wymiana wiedzy} --- co 50~pokoleń najlepszy osobnik z~każdej wyspy trafia do sąsiada w~pierścieniu. Dobre cechy genetyczne (np.~udane przypisanie 50\% zdarzeń) propagują się po topologii, a~lokalne minima różnych wysp wzajemnie się wybijają. Średnia jakość per pokolenie rośnie szybciej niż w~pojedynczej populacji.
 \end{enumerate}
 
-\subsubsection*{Spadek dla $n_e=1058$ --- narzut komunikacji}
+\subsubsection*{Spadek dla pełnego datasetu ($n_e=633$) --- narzut komunikacji}
 
-Pełny dataset (1058~zdarzeń) ma niższy speedup ($S_{16} = 19.59\times$) niż~400 ($28.73\times$). Powód: \emph{narzut komunikacji rośnie z~rozmiarem chromosomu}.
+Pełny dataset \path{data/simple/} (633~zdarzeń) ma niższy speedup ($S_{16}=14.44\times$) niż~400 zdarzeń ($22.38\times$). Powód: \emph{narzut komunikacji rośnie z~rozmiarem chromosomu}.
 \[
-\text{payload migracji} = n_e \cdot 8\,\text{B} = 1058 \cdot 8\,\text{B} = 8.46\,\text{KB}\quad
+\text{payload migracji} = n_e \cdot 8\,\text{B} = 633 \cdot 8\,\text{B} = 5.06\,\text{KB}\quad
 \text{(vs 3.2 KB dla }n_e{=}400\text{)}
 \]
-Co~50~pokoleń każdy z~16~rankow wysyła i~odbiera 8.46~KB; przy 10~migracjach total per node = 169~KB. Choć w~liczbach absolutnych to mało, latencja ringu rośnie z~$N$ ($O(N)$ dla synchronicznego \texttt{Sendrecv}), co dla $n_e=1058$ przeważa korzyść z~wielowyspowej eksploracji.
+Co~50~pokoleń każdy z~16~rankow wysyła i~odbiera 5.06~KB; przy 10~migracjach total per node = 101~KB. Latencja ringu rośnie z~$N$ ($O(N)$ dla synchronicznego \texttt{Sendrecv}), więc dla większych chromosomów koszt komunikacji częściowo niweluje korzyść z~wielowyspowej eksploracji.
 
 \subsubsection*{Wpływ równoległości na jakość rozwiązania}
 
-Speedup nie jest jedynym efektem zrównoleglenia --- dla 400~zdarzeń wariant 16-wyspowy daje też \emph{lepsze rozwiązanie miękkie}:
+Speedup nie jest jedynym efektem zrównoleglenia. Dla pełnego datasetu (\path{results_v3/unitime_v2_nogrupa.csv}) wariant 16-wyspowy daje \emph{lepsze rozwiązanie miękkie} niż~sekwencyjny:
 \[
-\text{soft}(T_1) = 675,\qquad \text{soft}(T_{16}) = 645
-\quad (-30 \text{ kar, } -4.4\%)
+\overline{\text{soft}}(T_1) = 2835,\qquad \overline{\text{soft}}(T_{16}) = 2818
+\quad (-17 \text{ kar})
 \]
 Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych} --- algorytm zawsze produkuje plan \emph{wykonalny}. Różnica w~jakości miękkiej oznacza, że Island Model nie tylko liczy szybciej, ale eksploruje skuteczniej.
 
@@ -1129,21 +1168,21 @@ Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych} --- algorytm zaw
 \begin{table}[H]
 \centering\small
 \renewcommand{\arraystretch}{1.2}
-\begin{tabularx}{\textwidth}{rrrrX}
+\begin{tabularx}{\textwidth}{rrrX}
 \toprule
-\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{$S_{\infty}$ Amdahl} & \textbf{$f$} & \textbf{Charakter} \\
+\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{Eff.~$=S_{16}/16$} & \textbf{Charakter (z~rzeczywistych pomiarów)} \\
 \midrule
-100  & 11.96$\times$ & 24$\times$  & 0.042  & \textbf{podliniowy} (wysoki narzut przy małej pracy/wyspie) \\
-200  & 24.55$\times$ & ---         & ---    & \textbf{super-liniowy} (eksploracja $>$ narzut) \\
-400  & 28.73$\times$ & ---         & ---    & \textbf{super-liniowy} (optymalny punkt) \\
-1058 & 19.59$\times$ & ---         & ---    & \textbf{liniowy z~saturacją} (chromosom $\sim$8.5 KB) \\
+100  &  6.32$\times$ & 39.5\%  & \textbf{podliniowy} (wysoki narzut przy małej pracy/wyspie, $\sim$0.4~s na rank) \\
+200  & 11.18$\times$ & 69.9\%  & \textbf{podliniowy z~przyzwoitą efektywnością} \\
+400  & 22.38$\times$ & 139.9\% & \textbf{super-liniowy} --- punkt optymalny dla naszej konfiguracji \\
+633  & 14.44$\times$ & 90.3\%  & \textbf{prawie liniowy} z~saturacją (chromosom $\sim$5~KB) \\
 \bottomrule
 \end{tabularx}
-\caption{Reżimy skalowania w~zależności od rozmiaru problemu}
+\caption{Reżimy skalowania w~zależności od rozmiaru problemu (źródło: \path{results_v3/unitime_v2_*.csv}, średnie z~3~runów per konfiguracja)}
 \label{tab:scaling-regime}
 \end{table}
 
-\textbf{Wniosek inżynierski:} dla projektu UCTP optymalnym punktem jest $n_e \in [200, 400]$ przy $N=16$. Mniejsze instancje są ograniczone przez stałe koszty komunikacji; większe --- przez payload migracji.
+\textbf{Wniosek inżynierski:} dla projektu UCTP optymalnym punktem jest $n_e \approx 400$ przy $N=16$ (super-liniowość). Mniejsze instancje (100/200) są ograniczone przez stałe koszty komunikacji; większe (633) zaczynają tracić efektywność z~powodu rosnącego payloadu migracji.
 
 % =====================================================================
 % 7. STRUKTURA KODU ŹRÓDŁOWEGO
@@ -1328,11 +1367,11 @@ clean:                   # przywrocenie stanu wyjsciowego
 \section{Wnioski}
 
 \begin{itemize}
-    \item \textbf{Poprawność:} 0~naruszeń twardych na wszystkich instancjach (100--1058 zdarzeń).
-    \item \textbf{Przyspieszenie:} do $28.73\times$ na 16 procesach (400 zdarzeń); super-liniowe dzięki wielowyspowej eksploracji.
-    \item \textbf{Skalowalność:} speedup rośnie z~rozmiarem: $11.96\times$ (100), $24.55\times$ (200), $28.73\times$ (400), $19.59\times$ (1058).
-    \item \textbf{Jakość:} wariant równoległy daje lepsze rozwiązania miękkie (675~vs~645 dla 400 zdarzeń).
-    \item \textbf{Komunikacja:} frakcja sekwencyjna $f \approx 0.04$ --- narzut MPI znikomy.
+    \item \textbf{Poprawność:} \textbf{0~naruszeń twardych} na wszystkich instancjach (100, 200, 400, 633 zdarzeń) we wszystkich konfiguracjach $\{1, 4, 8, 16\}$ procesów (zweryfikowane w~\path{results_v3/unitime_v2_*.csv}).
+    \item \textbf{Najwyższe przyspieszenie:} $S_{16}=22.38\times$ dla 400 zdarzeń (super-liniowe, efektywność~140\%) --- punkt optymalny współczynnika praca/komunikacja.
+    \item \textbf{Skalowalność:} speedup rośnie z~rozmiarem do $n_e=400$, potem spada przez narzut komunikacji: $6.32\times$ (100), $11.18\times$ (200), $\mathbf{22.38\times}$ (400), $14.44\times$ (633).
+    \item \textbf{Jakość:} wariant 16-wyspowy daje lepsze rozwiązania miękkie niż~1-wyspowy ($\overline{\text{soft}}_{T_{16}}=2818$ vs~$2835$ dla pełnego datasetu, $-17$~kar) --- Island Model nie tylko liczy szybciej, ale i~lepiej eksploruje przestrzeń.
+    \item \textbf{Komunikacja:} dla małego $n_e=100$ frakcja sekwencyjna~$f \approx 0.10$ ogranicza speedup do~$\sim$10$\times$; dla większych instancji $f$ maleje, a~zysk z~wielowyspowej eksploracji rośnie aż do punktu, w~którym dominuje payload migracji.
 \end{itemize}
 
 % =====================================================================
