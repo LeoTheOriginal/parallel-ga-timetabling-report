@@ -986,14 +986,21 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 
 % Arrows
 \draw[arr] (raw) -- node[arrlbl, above=3pt, pos=0.5] {Python} (conv);
-\draw[arr] (conv.east) -- ++(0.5, 0) |- (rooms.west);
-\draw[arr] (conv.east) -- ++(0.5, 0) |- (teachers.west);
-\draw[arr] (conv.east) -- ++(0.5, 0) |- (groups.west);
-\draw[arr] (conv.east) -- ++(0.5, 0) |- (courses.west);
-\draw[arr] (rooms.east)    -- ++(0.3, 0) |- (load.west);
-\draw[arr] (teachers.east) -- ++(0.3, 0) |- (load.west);
-\draw[arr] (groups.east)   -- ++(0.3, 0) |- (load.west);
-\draw[arr] (courses.east)  -- ++(0.3, 0) |- (load.west);
+
+% Fan-out: conv -> 4 CSV przez wspólny trunk pionowy
+\coordinate (sp1) at ($(conv.east) + (0.75, 0)$);
+\draw[thick] (conv.east) -- (sp1);
+\draw[thick] (sp1 |- rooms.west) -- (sp1 |- courses.west);
+\foreach \n in {rooms, teachers, groups, courses}
+    \draw[arr] (sp1 |- \n.west) -- (\n.west);
+
+% Fan-in: 4 CSV -> load przez wspólny trunk pionowy
+\coordinate (sp2) at ($(load.west) + (-0.75, 0)$);
+\draw[thick] (sp2 |- rooms.east) -- (sp2 |- courses.east);
+\foreach \n in {rooms, teachers, groups, courses}
+    \draw[thick] (\n.east) -- (sp2 |- \n.east);
+\draw[arr] (sp2 |- load.west) -- (load.west);
+
 \draw[arr] (load) -- (data);
 \draw[arr] (data) -- node[arrlbl, right] {rank 0} (bcast);
 \draw[arr] (bcast) -- node[arrlbl, right] {wszystkie ranki} (allranks);
