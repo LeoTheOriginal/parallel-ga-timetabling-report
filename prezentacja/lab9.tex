@@ -186,21 +186,11 @@ i minimalizując karę za miękkie.
 \end{enumerate}
 \end{frame}
 
-\begin{frame}[fragile]{Podzbiory deterministyczne (skalowalność)}
-\textbf{Subsetting jednym poleceniem} --- ten sam skrypt z~flagą \texttt{-{}-subset N}:
+\begin{frame}{Podzbiory deterministyczne (skalowalność)}
+\textbf{4 datasety dla testów skalowalności} --- losowanie podzbioru zdarzeń
+ze stałym ziarnem (\texttt{-{}-seed 42}) gwarantuje powtarzalność.
 
-{\footnotesize
-\begin{verbatim}
-python3 scripts/convert_simple.py events_raw.csv \
-        data/simple_n100/ --subset 100 --seed 42
-python3 scripts/convert_simple.py events_raw.csv \
-        data/simple_n200/ --subset 200 --seed 42
-python3 scripts/convert_simple.py events_raw.csv \
-        data/simple_n400/ --subset 400 --seed 42
-\end{verbatim}
-}
-
-\vspace{0.4em}
+\vspace{0.6em}
 \textbf{Rozmiary encji per dataset:}
 \centering\small
 \begin{tabular}{lrrrr}
@@ -214,15 +204,10 @@ python3 scripts/convert_simple.py events_raw.csv \
 \bottomrule
 \end{tabular}
 
-\vspace{0.4em}
-\begin{itemize}\small
-    \item \textbf{Deterministyczne} --- \texttt{-{}-seed 42} gwarantuje powtarzalność
-    \item \textbf{Subset stratyfikowany po zdarzeniach} --- mniejszy dataset ma proporcjonalnie mniej encji (bo encje wybierane tylko jeśli pojawiają się w~próbce)
-\end{itemize}
-
-\vspace{0.3em}
+\vspace{0.6em}
 \centering\small
-\textbf{4 datasety w~tabeli wyników: 100, 200, 400, 633} (pełny \path{data/simple/}).
+\textbf{Subset stratyfikowany po zdarzeniach} --- mniejszy dataset ma proporcjonalnie mniej encji
+(encja wybierana tylko jeśli pojawia się w~próbce zdarzeń).
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
