@@ -960,11 +960,11 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 % Layer 2: Python converter
 \node[proc] (conv)  at (3.5, 4) {\texttt{convert\_simple.py}\\\tiny strict filter + dedup};
 
-% Layer 3: 4 normalized CSV
-\node[src, minimum width=1.7cm] (rooms)    at (7,    5) {\texttt{rooms.csv}};
-\node[src, minimum width=1.7cm] (teachers) at (7,    4.2) {\texttt{teachers.csv}};
-\node[src, minimum width=1.7cm] (groups)   at (7,    3.4) {\texttt{groups.csv}};
-\node[src, minimum width=1.7cm] (courses)  at (7,    2.6) {\texttt{courses.csv}};
+% Layer 3: 4 normalized CSV (większy gap żeby boxy się nie nachodziły)
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (rooms)    at (7, 5.85) {\texttt{rooms.csv}};
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (teachers) at (7, 4.75) {\texttt{teachers.csv}};
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (groups)   at (7, 3.65) {\texttt{groups.csv}};
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (courses)  at (7, 2.55) {\texttt{courses.csv}};
 
 % Layer 4: rank 0 loads + builds ProblemData
 \node[proc, minimum width=2.7cm] (load) at (10.5, 4) {\texttt{io.c}\\\tiny load\_*() + expand};
@@ -985,7 +985,7 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 \node[font=\scriptsize, gray!60!black, anchor=north] at (8.5, -3) {webapp.html · gnuplot};
 
 % Arrows
-\draw[arr] (raw)      -- node[arrlbl, above] {Python} (conv);
+\draw[arr] (raw) -- node[arrlbl, above=3pt, pos=0.5] {Python} (conv);
 \draw[arr] (conv.east) -- ++(0.5, 0) |- (rooms.west);
 \draw[arr] (conv.east) -- ++(0.5, 0) |- (teachers.west);
 \draw[arr] (conv.east) -- ++(0.5, 0) |- (groups.west);
