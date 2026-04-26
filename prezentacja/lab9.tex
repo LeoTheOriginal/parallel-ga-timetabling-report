@@ -316,19 +316,29 @@ Synchroniczna terminacja na klastrze przez \texttt{MPI\_Allreduce(MAX)}.
 \node[isl] (r2) at (-90:2.3)  {Wyspa 2\\\tiny rank 2};
 \node[isl] (r3) at (180:2.3)  {Wyspa\\$N{-}1$};
 
-% Ring migration
+% Ring migration: 0 -> 1 -> 2 (solid), 2 -> N-1 (dashed = pomijamy resztę), N-1 -> 0 (solid)
 \draw[arr] (r0) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r1);
 \draw[arr] (r1) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r2);
-\draw[arr] (r2) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {$\cdots$\,Sendrecv\,$\cdots$} (r3);
+\draw[-{Stealth[length=2.5mm]}, thick, dashed, obsBlueFg] (r2) to[bend left=18]
+    node[midway, sloped, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {$\cdots$\,Sendrecv\,$\cdots$} (r3);
 \draw[arr] (r3) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r0);
 
-% CSV (lewo-góra) -> Bcast -> rank 0
+% CSV (lewo-góra) -> Bcast -> WSZYSTKIE wyspy
 \node[draw, rectangle, rounded corners=3pt, fill=obsGreenBg, draw=obsGreenFg,
       font=\scriptsize, align=center, inner sep=4pt]
-    (csv) at (-5, 3.2) {\textbf{Dane CSV}\\\tiny rooms, teachers,\\\tiny groups, courses};
-\draw[barr] (csv.south east) to[out=-30, in=140]
+    (csv) at (-5.5, 3.2) {\textbf{Dane CSV}\\\tiny rooms, teachers,\\\tiny groups, courses};
+
+% Punkt rozejścia broadcast (hub) między CSV a pierścieniem
+\coordinate (bcasthub) at (-2.7, 1.6);
+\draw[barr] (csv.south east) to[out=-30, in=160]
     node[pos=0.55, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Bcast}
-    (r0.north west);
+    (bcasthub);
+\draw[barr, opacity=0.7] (bcasthub) -- (r0.west);
+\draw[barr, opacity=0.7] (bcasthub) -- (r1.north west);
+\draw[barr, opacity=0.7] (bcasthub) -- (r2.north west);
+\draw[barr, opacity=0.7] (bcasthub) -- (r3.east);
+\node[font=\tiny\itshape, obsGreenFg!80!black, anchor=north]
+    at ($(bcasthub) + (0, -0.15)$) {do wszystkich rank};
 
 % rank 0 -> Allreduce(MINLOC) -> Globalny najlepszy (prawo-góra)
 \node[draw, rectangle, rounded corners=3pt, fill=obsAmberBg, draw=obsAmberFg,
