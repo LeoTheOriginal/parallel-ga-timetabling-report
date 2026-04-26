@@ -351,22 +351,25 @@ Migracja pierścieniowa co~\textbf{50~pokoleń} --- najlepszy osobnik wędruje d
 
 \begin{frame}{Operacje MPI --- mapa „gdzie i kiedy"}
 \centering\scriptsize
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{>{\tt}l p{0.36\textwidth} l l r}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{>{\tt}l p{4.8cm} l l r}
 \toprule
 \textbf{Prymityw} & \textbf{Cel} & \textbf{Plik:linia} & \textbf{Częstotliwość} & \textbf{Payload} \\
 \midrule
-MPI\_Init              & start środowiska                                       & \texttt{main.c:25}      & 1$\times$              & --- \\
+MPI\_Init              & start środowiska                                       & \texttt{main.c:25}      & 1$\times$               & --- \\
 MPI\_Bcast (BYTE)      & dystrybucja \texttt{ProblemData}                       & \texttt{main.c:107}     & 1$\times$ na starcie    & $\sim$668 KB \\
-MPI\_Barrier           & sync przed pomiarem                                    & \texttt{main.c:139}     & 1$\times$              & --- \\
-MPI\_Wtime             & pomiar wall-clock                                      & \texttt{main.c:140,157} & 2$\times$              & --- \\
+MPI\_Barrier           & sync przed pomiarem                                    & \texttt{main.c:139}     & 1$\times$               & --- \\
+MPI\_Wtime             & pomiar wall-clock                                      & \texttt{main.c:140,157} & 2$\times$               & --- \\
 MPI\_Sendrecv          & migracja pierścieniowa best $\to$ sąsiad               & \texttt{ga.c:200}       & co 50 pokoleń           & $n_e\!\cdot\!8$ B \\
-MPI\_Allreduce(MAX)    & synchronizacja terminacji (OR sem.)                    & \texttt{ga.c:367}       & \cellcolor{warning}co pokolenie  & 1 int \\
+MPI\_Allreduce(MAX)    & synchronizacja terminacji                              & \texttt{ga.c:367}       & \cellcolor{warning}co pokolenie & 1 int \\
 MPI\_Allreduce(MINLOC) & globalny best $(\text{fit}, \text{rank})$              & \texttt{main.c:165}     & 1$\times$ na końcu      & 2 ints \\
-MPI\_Send/Recv         & transfer chromosomu zwycięzcy                          & \texttt{main.c:177-193} & $\leq 2\times$         & $n_e\!\cdot\!8$ B \\
-MPI\_Finalize          & zamknięcie środowiska                                  & \texttt{main.c:213}     & 1$\times$              & --- \\
+MPI\_Send/Recv         & transfer chromosomu zwycięzcy                          & \texttt{main.c:177-193} & $\leq 2\times$          & $n_e\!\cdot\!8$ B \\
+MPI\_Finalize          & zamknięcie środowiska                                  & \texttt{main.c:213}     & 1$\times$               & --- \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 
 \vspace{0.6em}
 \begin{columns}[T]
@@ -380,10 +383,9 @@ MPI\_Finalize          & zamknięcie środowiska                                
 
 \column{0.5\textwidth}
 \textbf{Niezależne strumienie PRNG:}\\
-\scriptsize PCG32, \texttt{initseq=rank}\\
-$\to$ nieskorelowane subpopulacje\\[2pt]
+\scriptsize PCG32, \texttt{initseq=rank} $\to$ nieskorelowane subpopulacje\\[2pt]
 \textbf{Serializacja:}\\
-\scriptsize chromosom $\to$ flat buffer \texttt{int[]}\\ przed każdym Sendrecv
+\scriptsize chromosom $\to$ flat buffer \texttt{int[]} przed każdym Sendrecv
 \end{columns}
 \end{frame}
 
