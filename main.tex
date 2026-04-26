@@ -901,11 +901,12 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 
 \begin{figure}[H]
 \centering
+\resizebox{\textwidth}{!}{%
 \begin{tikzpicture}[
     src/.style={draw, rounded corners=4pt, fill=obsGreenBg, draw=obsGreenFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
     proc/.style={draw, rounded corners=4pt, fill=obsBlueBg, draw=obsBlueFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
     mpiop/.style={draw, rounded corners=4pt, fill=obsAmberBg, draw=obsAmberFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick, dashed},
-    out/.style={draw, rounded corners=4pt, fill=obsOrangeBg, draw=obsOrangeFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    output/.style={draw, rounded corners=4pt, fill=obsOrangeBg, draw=obsOrangeFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
     arr/.style={-{Stealth[length=2.5mm]}, thick},
     arrlbl/.style={font=\scriptsize\itshape, fill=white, inner xsep=2pt, inner ysep=1pt}
 ]
@@ -933,9 +934,9 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 \node[proc, minimum width=4cm, minimum height=1.2cm] (allranks) at (14, -1) {Rank 0..N-1\\\tiny GA loop + migration + reduce};
 
 % Layer 7: outputs
-\node[out, minimum width=2cm] (timetable)   at (8.5, -1) {\texttt{timetable}\\\texttt{.txt}};
-\node[out, minimum width=2cm] (schedule)    at (8.5, -2.2) {\texttt{schedule}\\\texttt{.csv}};
-\node[out, minimum width=2cm] (convergence) at (8.5, 0.2) {\texttt{convergence}\\\texttt{\_rankN.csv}};
+\node[output, minimum width=2cm] (timetable)   at (8.5, -1) {\texttt{timetable}\\\texttt{.txt}};
+\node[output, minimum width=2cm] (schedule)    at (8.5, -2.2) {\texttt{schedule}\\\texttt{.csv}};
+\node[output, minimum width=2cm] (convergence) at (8.5, 0.2) {\texttt{convergence}\\\texttt{\_rankN.csv}};
 
 % Layer 8: tools
 \node[font=\scriptsize, gray!60!black, anchor=north] at (8.5, -3) {webapp.html · gnuplot};
@@ -957,7 +958,8 @@ Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obs
 \draw[arr] (allranks.west) -- ++(-1, 0) |- (schedule.east);
 \draw[arr] (allranks.west) -- ++(-1, 0) |- (convergence.east);
 
-\end{tikzpicture}
+\end{tikzpicture}%
+}
 \caption{Pełny przepływ danych --- od surowego eksportu UniTime do plików wynikowych. Zielone bloki~=~dane (CSV), niebieskie~=~przetwarzanie, żółte przerywane~=~komunikacja MPI, pomarańczowe~=~wyjście.}
 \label{fig:io-flow}
 \end{figure}
