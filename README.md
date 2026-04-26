@@ -8,19 +8,29 @@ Overleaf-compatible -- sync this repo with Overleaf for collaborative editing.
 ## Structure
 
 ```
-raport.tex         Main LaTeX document (Polish)
+main.tex                       Main LaTeX document --- raport (Polish)
 figures/
-  speedup.png      Speedup vs MPI processes chart
-  convergence.png  Per-island convergence chart
-  quality_scaling.png  Quality & timing vs problem size
-Makefile           pdflatex build (2-pass for TOC)
+  speedup.png                  Speedup vs MPI processes chart
+  convergence.png              Per-island convergence chart
+  quality_scaling.png          Quality & timing vs problem size
+common/
+  sprawozdanie-agh.cls         AGH report class
+  logo-agh.jpg                 AGH logo
+prezentacja/
+  lab9.tex                     Beamer slides for Lab 9 defence (29.04.2026)
+  beamerthemeAGH.sty           AGH Beamer theme (Polak)
+  beamercolorthemeAGH.sty      AGH Beamer color theme
+  Makefile                     pdflatex 2-pass build for slides
+Makefile                       pdflatex build (raport + prezentacja)
 ```
 
 ## Build locally
 
 ```bash
-make          # produces raport.pdf
-make clean    # remove build artifacts
+make               # produces main.pdf (raport)
+make presentation  # produces prezentacja/lab9.pdf (Beamer slides)
+make all-pdf       # both
+make clean         # remove build artifacts (raport + prezentacja)
 ```
 
 ## Overleaf setup
