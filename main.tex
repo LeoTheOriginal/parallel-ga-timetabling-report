@@ -1101,21 +1101,14 @@ Pomiary wykonane na klastrze AGH (węzły \texttt{stud204-01..stud204-16}), \tex
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{speedup.png}
-\caption{Przyspieszenie vs liczba procesów MPI dla różnych rozmiarów problemu}
+\caption{Przyspieszenie vs liczba procesów MPI dla 4~rozmiarów problemu (100/200/400/633 zdarzeń). Wykres wygenerowany skryptem \path{plots/generate_real_pngs.py} z~plików \path{results_v3/unitime_v2_*.csv}.}
 \label{fig:speedup}
 \end{figure}
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.9\textwidth]{convergence.png}
-\caption{Konwergencja per wyspa --- 16 wysp (wykres historyczny z wcześniejszej rundy benchmarków, plik \path{figures/convergence.png})}
-\label{fig:convergence}
-\end{figure}
-
-\begin{figure}[H]
-\centering
 \includegraphics[width=0.9\textwidth]{quality_scaling.png}
-\caption{Jakość rozwiązania i czas vs rozmiar problemu}
+\caption{Jakość rozwiązania (naruszenia miękkie, panel lewy) i~czas wykonania (skala log., panel prawy) vs rozmiar problemu, dla wariantów 1-procesowego i~16-procesowego. Źródło danych: \path{results_v3/unitime_v2_*.csv}.}
 \label{fig:quality}
 \end{figure}
 
