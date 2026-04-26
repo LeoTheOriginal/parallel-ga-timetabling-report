@@ -270,7 +270,7 @@ Skrypt \texttt{scripts/convert\_simple.py} (243~linie Pythona) realizuje 4-etapo
 \begin{itemize}\small
     \item czas startu i końca \emph{dokładnie} pokrywa się z~jednym z~7~bloków AGH 1.5\,h (8:00--9:30, 9:45--11:15, 11:30--13:00, 13:15--14:45, 15:00--16:30, 16:45--18:15, 18:30--20:00);
     \item budynek $\in \{$D-7, D-10, D-11$\}$ (kampus FiIS);
-    \item nie zawiera słów: \texttt{egzamin}, \texttt{kolokwium}, \texttt{konsultacje}, \texttt{zaliczenie};
+    \item tytuł nie zaczyna się od: \texttt{egzamin}, \texttt{konsultacje}, \texttt{kolokwium}, \texttt{zaliczenie}, \texttt{odrobienie}, \texttt{odrabianie} (lista \texttt{SKIP\_TYTUL} w~\path{convert_simple.py});
     \item nie zawiera znaczników: \texttt{[NST]} (niestacjonarne), \texttt{-SZD} (szkoła doktorska), \texttt{FiIS-INNE};
     \item ma znanego prowadzącego (niepusty wiersz).
 \end{itemize}
@@ -606,7 +606,7 @@ Dokładny inwentarz wszystkich miejsc w~kodzie, w~których wywołujemy MPI, wraz
 \midrule
 MPI\_Init              & start środowiska MPI                                    & \texttt{main.c:25}         & 1$\times$ na uruchomienie & --- \\
 MPI\_Comm\_rank/size   & odczyt rank/N                                           & \texttt{main.c:28-29}      & 1$\times$                 & 2 ints \\
-MPI\_Bcast (BYTE)      & dystrybucja \texttt{ProblemData} z~rank~0               & \texttt{main.c:107}        & 1$\times$                 & $\sim$2.4~MB$^*$ \\
+MPI\_Bcast (BYTE)      & dystrybucja \texttt{ProblemData} z~rank~0               & \texttt{main.c:107}        & 1$\times$                 & $\sim$668~KB$^*$ \\
 MPI\_Barrier           & synchronizacja przed pomiarem czasu                     & \texttt{main.c:139}        & 1$\times$                 & --- \\
 MPI\_Wtime             & pomiar wall-clock (start/stop)                          & \texttt{main.c:140,157}    & 2$\times$                 & double \\
 MPI\_Sendrecv          & migracja pierścieniowa (best $\to$ sąsiad)              & \texttt{ga.c:200}          & co 50 pokoleń             & $n_e \cdot 8$~B \\
@@ -616,7 +616,7 @@ MPI\_Send/Recv         & transfer chromosomu zwycięzcy do rank~0               
 MPI\_Finalize          & zamknięcie środowiska                                   & \texttt{main.c:213}        & 1$\times$                 & --- \\
 \bottomrule
 \end{tabularx}
-\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} = stałe tablice z~\texttt{types.h} (\texttt{MAX\_ROOMS=150}, \texttt{MAX\_TEACHERS=300}, \texttt{MAX\_GROUPS=1200}, \texttt{MAX\_COURSES=2500}, \texttt{MAX\_EVENTS=2500}). $n_e$ = liczba zdarzeń (do~633 w~bieżącym pełnym datasecie \path{data/simple/}).}
+\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} obliczony z~układu pól \texttt{types.h} ($150{\cdot}144 + 300{\cdot}132 + 1200{\cdot}136 + 2500{\cdot}156 + 2500{\cdot}28 + \text{liczniki} = 684\,432$ B $\approx 668$~KB), gdzie limity \texttt{MAX\_ROOMS=150, MAX\_TEACHERS=300, MAX\_GROUPS=1200, MAX\_COURSES=2500, MAX\_EVENTS=2500}. $n_e$ = liczba zdarzeń (do~633 w~bieżącym pełnym datasecie \path{data/simple/}).}
 \label{tab:mpi-inventory}
 \end{table}
 
@@ -886,7 +886,7 @@ Sekwencja wczytywania zdefiniowana w~\texttt{main.c:42-104}, parsing w~\texttt{i
 \end{itemize}
 Każda funkcja zwraca liczbę wczytanych rekordów lub~$-1$ przy błędzie. Błąd $\Rightarrow$ \texttt{MPI\_Abort(1)} (synchroniczne zakończenie wszystkich rankow).
 
-\item \textbf{Ekspansja kursów do zdarzeń} --- \texttt{expand\_events(\&data)}. Kurs typu \texttt{hours\_per\_week=4} generuje 4~niezależne zdarzenia o~tym samym \texttt{course\_id}. Funkcja zwraca \texttt{data.num\_events} (max~$\sim$2000).
+\item \textbf{Ekspansja kursów do zdarzeń} --- \texttt{expand\_events(\&data)}. Kurs typu \texttt{hours\_per\_week=4} generuje 4~niezależne zdarzenia o~tym samym \texttt{course\_id}. Funkcja zwraca \texttt{data.num\_events} (max \texttt{MAX\_EVENTS=2500}, w~bieżącym datasecie 633).
 
 \item \textbf{Walidacja na rank~0} --- \texttt{print\_summary(\&data)} wypisuje liczby encji, które rank~0 widzi przed broadcastem (sanity check).
 \end{enumerate}
