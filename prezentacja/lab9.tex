@@ -323,22 +323,16 @@ Synchroniczna terminacja na klastrze przez \texttt{MPI\_Allreduce(MAX)}.
     node[midway, sloped, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {$\cdots$\,Sendrecv\,$\cdots$} (r3);
 \draw[arr] (r3) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r0);
 
-% CSV (lewo-góra) -> Bcast -> WSZYSTKIE wyspy
+% CSV (lewo-góra) -> Bcast -> 3 widoczne wyspy (0, N-1, 2) — strzałki w lewy bok każdego koła
 \node[draw, rectangle, rounded corners=3pt, fill=obsGreenBg, draw=obsGreenFg,
       font=\scriptsize, align=center, inner sep=4pt]
     (csv) at (-5.5, 3.2) {\textbf{Dane CSV}\\\tiny rooms, teachers,\\\tiny groups, courses};
 
-% Punkt rozejścia broadcast (hub) między CSV a pierścieniem
-\coordinate (bcasthub) at (-2.7, 1.6);
-\draw[barr] (csv.south east) to[out=-30, in=160]
-    node[pos=0.55, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Bcast}
-    (bcasthub);
-\draw[barr, opacity=0.7] (bcasthub) -- (r0.west);
-\draw[barr, opacity=0.7] (bcasthub) -- (r1.north west);
-\draw[barr, opacity=0.7] (bcasthub) -- (r2.north west);
-\draw[barr, opacity=0.7] (bcasthub) -- (r3.east);
-\node[font=\tiny\itshape, obsGreenFg!80!black, anchor=north]
-    at ($(bcasthub) + (0, -0.15)$) {do wszystkich rank};
+\draw[barr] (csv.east) to[out=-10, in=180]
+    node[pos=0.6, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Bcast}
+    (r0.west);
+\draw[barr] (csv.south) to[out=-90, in=180] (r3.west);
+\draw[barr] (csv.south east) to[out=-60, in=180] (r2.west);
 
 % rank 0 -> Allreduce(MINLOC) -> Globalny najlepszy (prawo-góra)
 \node[draw, rectangle, rounded corners=3pt, fill=obsAmberBg, draw=obsAmberFg,
