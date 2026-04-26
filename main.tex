@@ -1222,21 +1222,22 @@ make plot         # generowanie wykresow (gnuplot)
 
 \subsection{Dane wejściowe}
 
-Katalog \texttt{data/} w~formacie CSV:
+Katalog \path{data/} w~formacie CSV:
 
 \begin{itemize}
-    \item \texttt{rooms.csv} --- \texttt{id, name, capacity, is\_lab}
-    \item \texttt{teachers.csv} --- \texttt{id, name}
-    \item \texttt{groups.csv} --- \texttt{id, name, num\_students}
-    \item \texttt{courses.csv} --- \texttt{id, name, teacher\_id, group\_id, hours\_per\_week, requires\_lab, duration\_slots, parent\_group\_id}
+    \item \path{rooms.csv} --- \path{id, name, capacity, is_lab}
+    \item \path{teachers.csv} --- \path{id, name}
+    \item \path{groups.csv} --- \path{id, name, num_students}
+    \item \path{courses.csv} --- \path{id, name, teacher_id, group_id,}\\
+          \path{hours_per_week, requires_lab, duration_slots, parent_group_id}
 \end{itemize}
 
 \subsection{Dane wyjściowe}
 
 \begin{itemize}
-    \item \texttt{timetable.txt} --- czytelny plan zajęć per grupa (siatka dzień $\times$ blok)
-    \item \texttt{schedule.csv} --- maszynowy format do wizualizacji
-    \item \texttt{convergence\_rankN.csv} --- konwergencja per wyspa
+    \item \path{timetable.txt} --- czytelny plan zajęć per grupa (siatka dzień $\times$ blok)
+    \item \path{schedule.csv} --- maszynowy format do wizualizacji
+    \item \path{convergence_rankN.csv} --- konwergencja per wyspa
 \end{itemize}
 
 \begin{figure}[H]
