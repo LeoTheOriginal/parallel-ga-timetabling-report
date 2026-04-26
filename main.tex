@@ -1244,48 +1244,12 @@ Katalog \texttt{data/} w~formacie CSV:
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[
-    cell/.style={draw, minimum width=2.4cm, minimum height=0.7cm, align=center, font=\tiny\ttfamily, anchor=north west},
-    hdr/.style={cell, fill=gray!20, font=\tiny\bfseries},
-    occ/.style={cell, fill=blue!10},
-    lab/.style={cell, fill=green!10},
-    empty/.style={cell, fill=white}
-]
-
-\node[font=\small\bfseries] at (6, 0.5) {Fragment wygenerowanego planu --- grupa IS-1};
-
-% Nagłówki
-\node[hdr, minimum width=1.5cm] at (0, 0) {Blok};
-\node[hdr] at (1.5, 0) {Poniedziałek};
-\node[hdr] at (3.9, 0) {Wtorek};
-\node[hdr] at (6.3, 0) {Środa};
-
-% Blok 1
-\node[cell, minimum width=1.5cm] at (0, -0.7) {08:00};
-\node[occ] at (1.5, -0.7) {Matematyka\\s.201};
-\node[empty] at (3.9, -0.7) {---};
-\node[occ] at (6.3, -0.7) {Fizyka\\s.105};
-
-% Blok 2
-\node[cell, minimum width=1.5cm] at (0, -1.4) {09:45};
-\node[occ] at (1.5, -1.4) {SRiR wyk.\\s.201};
-\node[lab] at (3.9, -1.4) {SRiR lab.\\LAB-204};
-\node[empty] at (6.3, -1.4) {---};
-
-% Blok 3
-\node[cell, minimum width=1.5cm] at (0, -2.1) {11:30};
-\node[empty] at (1.5, -2.1) {---};
-\node[lab] at (3.9, -2.1) {Prog. lab.\\LAB-108};
-\node[occ] at (6.3, -2.1) {Angielski\\s.302};
-
-\node[font=\tiny, gray] at (6, -3.0) {Pełny plan: 7 bloków $\times$ 5 dni, generowany automatycznie z schedule.csv};
-
-\end{tikzpicture}
-\caption{Przykładowy fragment wygenerowanego planu zajęć (timetable.txt)}
+\includegraphics[width=\textwidth]{webapp_pis2.png}
+\caption{Wygenerowany plan zajęć w~aplikacji webowej \texttt{webapp.html} --- widok grupy \texttt{PIS-2} (32~zajęcia, 6~podgrup) z~rozwiązania GA dla pełnego datasetu \texttt{simple} (633~zdarzeń, 16~procesów MPI). Kolorowanie automatyczne per przedmiot, hover pokazuje pełną nazwę kursu.}
 \label{fig:timetable-output}
 \end{figure}
 
-Plik \texttt{schedule.csv} może być załadowany do interaktywnej aplikacji webowej (\texttt{webapp.html}) umożliwiającej przeglądanie planu per grupa/prowadzący/sala z~kolorowaniem i~filtrowaniem.
+Aplikacja \texttt{webapp.html} (zasilana lokalnym REST API \texttt{scripts/api\_prototype.py} czytającym CSV-y w~\texttt{data/} i~\texttt{results\_v3/}) pozwala na przeglądanie planu per grupa, prowadzący lub sala, z~kolorowaniem i~filtrowaniem oraz porównaniem side-by-side z~oryginalnym planem UniTime.
 
 \subsection{Makefile --- reguły}
 
