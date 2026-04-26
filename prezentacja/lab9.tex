@@ -189,14 +189,16 @@ i minimalizując karę za miękkie.
 \begin{frame}[fragile]{Podzbiory deterministyczne (skalowalność)}
 \textbf{Subsetting jednym poleceniem} --- ten sam skrypt z~flagą \texttt{-{}-subset N}:
 
-\begin{lstlisting}[language=bash, basicstyle=\ttfamily\footnotesize, frame=single, backgroundcolor=\color{black!5}]
+{\footnotesize
+\begin{verbatim}
 python3 scripts/convert_simple.py events_raw.csv \
         data/simple_n100/ --subset 100 --seed 42
 python3 scripts/convert_simple.py events_raw.csv \
         data/simple_n200/ --subset 200 --seed 42
 python3 scripts/convert_simple.py events_raw.csv \
         data/simple_n400/ --subset 400 --seed 42
-\end{lstlisting}
+\end{verbatim}
+}
 
 \vspace{0.4em}
 \textbf{Rozmiary encji per dataset:}
