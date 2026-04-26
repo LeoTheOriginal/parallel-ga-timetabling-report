@@ -164,8 +164,7 @@ i minimalizując karę za miękkie.
 
 \begin{frame}{Pipeline danych: UniTime $\to$ 4 CSV}
 \textbf{Źródło:} produkcyjny eksport \texttt{events\_raw.csv} z~UniTime AGH ---
-\textbf{8\,283 linii} fizycznych, \textbf{4\,587 logicznych rekordów} CSV
-(weryfikacja: \texttt{wc -l} + \texttt{csv.reader}).
+\textbf{8\,283 linii} fizycznych, \textbf{4\,587 logicznych rekordów} CSV.
 
 \vspace{0.3em}
 \textbf{\texttt{convert\_simple.py}} (243 LoC) --- 4-etapowy pipeline:
@@ -185,13 +184,6 @@ i minimalizując karę za miękkie.
           \texttt{FiIS-OB}, \ldots) z~\texttt{parent\_group\_id} dla
           wykrywania kolizji wykład $\times$ ćwiczenia podgrupy.
 \end{enumerate}
-
-\vspace{0.2em}
-\centering
-\fcolorbox{black}{ok}{\parbox{0.9\textwidth}{\centering\scriptsize
-Liczby zweryfikowane uruchomieniem konwertera na bieżącym pliku
-\texttt{events\_raw.csv} oraz \texttt{wc -l data/simple/*.csv}.
-}}
 \end{frame}
 
 \begin{frame}[fragile]{Podzbiory deterministyczne (skalowalność)}
@@ -207,7 +199,7 @@ python3 scripts/convert_simple.py events_raw.csv \
 \end{lstlisting}
 
 \vspace{0.4em}
-\textbf{Realne rozmiary encji per dataset} (\texttt{wc -l data/simple\_n*/}):
+\textbf{Rozmiary encji per dataset:}
 \centering\small
 \begin{tabular}{lrrrr}
 \toprule
@@ -507,10 +499,6 @@ po runie mamy 16 trajektorii fitness na jednym wykresie.
 \end{tabular}
 
 \vspace{0.4em}
-\centering\scriptsize
-Źródło: \path{results_v3/unitime_v2_n100/200/400/nogrupa.csv} (3 runy avg).
-
-\vspace{0.4em}
 \begin{itemize}\small
     \item \textbf{0 naruszeń twardych} we wszystkich 16 konfiguracjach $\to$ feasible plan zawsze
     \item \textbf{Super-liniowy speedup} dla $n_e{=}400$ ($S_{16}{=}22.4\times$, eff~140\%) ---
@@ -519,13 +507,9 @@ po runie mamy 16 trajektorii fitness na jednym wykresie.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Wykres przyspieszenia (realne pomiary)}
+\begin{frame}{Wykres przyspieszenia}
 \centering
-\includegraphics[height=0.78\textheight]{speedup.png}
-
-\vspace{-0.3em}
-\centering\scriptsize\itshape
-Źródło: \path{results_v3/unitime_v2_*.csv} (3 runy/konfigurację).
+\includegraphics[height=0.85\textheight]{speedup.png}
 \end{frame}
 
 \begin{frame}{Skalowanie jakości i czasu}
