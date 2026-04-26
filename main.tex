@@ -243,22 +243,29 @@ Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej prz
 
 \begin{table}[H]
 \centering\small
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{rlcX}
 \toprule
-\textbf{Kolumna} & \textbf{Zawartość} \\
+\textbf{\#} & \textbf{Kolumna (oryg. nagłówek)} & \textbf{Używana?} & \textbf{Zawartość} \\
 \midrule
-\texttt{Nazwa}            & identyfikator kierunku/programu (np. \texttt{FiIS-PFT-1 EiOpt(1rok)}) \\
-\texttt{Grupa}            & numer podgrupy (1, 1a, 2, \ldots) \\
-\texttt{Typ}              & rodzaj zajęć: Wykład, CWA, CWL, Zajęcia seminaryjne \\
-\texttt{Tytuł}            & nazwa przedmiotu \\
-\texttt{Dzień tygodnia}   & Pn, Wt, Śr, Cz, Pt \\
-\texttt{Ogłoszony pocz./koniec} & godziny w~formacie HH:MM \\
-\texttt{Miejsce}          & nazwa sali z~prefiksem budynku (\texttt{D-10 225}) \\
-\texttt{Pojemność}        & liczba miejsc \\
-\texttt{Prowadzący}       & tytuł naukowy + nazwisko + inicjał \\
+ 1 & \texttt{Nazwa}                       & \cellcolor{obsGreenBg}tak & identyfikator kierunku/programu (np. \texttt{FiIS-PFT-1 EiOpt(1rok)}) \\
+ 2 & \texttt{Grupa}                       & \cellcolor{obsGreenBg}tak & numer podgrupy (1, 1a, 2, \ldots) \\
+ 3 & \texttt{Typ}                         & \cellcolor{obsGreenBg}tak & rodzaj zajęć: Wykład, CWA, CWL, Zajęcia seminaryjne, \ldots \\
+ 4 & \texttt{Tytuł}                       & \cellcolor{obsGreenBg}tak & nazwa przedmiotu \\
+ 5 & \texttt{Uwaga}                       & \cellcolor{obsRedBg}nie    & wewnętrzny opis (np. rozkład godzin \texttt{15/0/15/0/15s}) \\
+ 6 & \texttt{Dzień tygodnia}              & \cellcolor{obsGreenBg}tak & Pn, Wt, Śr, Cz, Pt (lub kombinacje typu \texttt{PnŚr}) \\
+ 7 & \texttt{Pierwszy dzień}              & \cellcolor{obsRedBg}nie    & data pierwszego wystąpienia (np. \texttt{17.3.2026}) \\
+ 8 & \texttt{Ostatni dzień}               & \cellcolor{obsRedBg}nie    & data ostatniego wystąpienia \\
+ 9 & \texttt{Ogłoszony początek}          & \cellcolor{obsGreenBg}tak & godzina rozpoczęcia w~formacie \texttt{H:MM} \\
+10 & \texttt{Ogłoszony koniec}            & \cellcolor{obsGreenBg}tak & godzina zakończenia w~formacie \texttt{H:MM} \\
+11 & \texttt{Miejsce}                     & \cellcolor{obsGreenBg}tak & nazwa sali z~prefiksem budynku (\texttt{D-10 225}) \\
+12 & \texttt{Pojemność}                   & \cellcolor{obsGreenBg}tak & liczba miejsc w~sali \\
+13 & \texttt{Prowadzący / Odpowiedzialny} & \cellcolor{obsGreenBg}tak & tytuł naukowy + nazwisko + inicjał (np. \texttt{dr Fiedor, J}) \\
+14 & \texttt{E-mail}                      & \cellcolor{obsRedBg}nie    & e-mail prowadzącego \\
+15 & \texttt{Żądane usługi}               & \cellcolor{obsRedBg}nie    & dodatkowe wymagania (najczęściej puste) \\
+16 & \texttt{Zatwierdzony}                & \cellcolor{obsRedBg}nie    & data zatwierdzenia rezerwacji \\
 \bottomrule
 \end{tabularx}
-\caption{Format surowego eksportu UniTime}
+\caption{Format surowego eksportu UniTime --- wszystkie 16~kolumn w~kolejności występowania w~pliku \path{events_raw.csv} (zweryfikowane przez \texttt{head -1 data/unitime/events\_raw.csv}). Konwerter \path{scripts/convert_simple.py} korzysta z~9~kolumn (zielone), pozostałe 7~jest pomijane.}
 \end{table}
 
 \subsection{Pipeline konwersji \texttt{convert\_simple.py}}
