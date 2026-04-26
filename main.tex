@@ -239,7 +239,7 @@ Ograniczenia twarde muszą być bezwzględnie spełnione:
 
 \subsection{Źródło: system UniTime AGH}
 
-Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej przez Wydział FiIS AGH do układania semestralnego planu zajęć. Eksport surowych zdarzeń (semestr letni 2025/26) zawiera $\approx$1058~rekordów w~pliku CSV \texttt{data/unitime/events_raw.csv}: każdy wiersz reprezentuje pojedyncze odbycie zajęć (instancję cykliczną), z~kolumnami:
+Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej przez Wydział FiIS AGH do układania semestralnego planu zajęć. Eksport surowych zdarzeń (semestr letni 2025/26) zawiera $\approx$1058~rekordów w~pliku CSV \texttt{data/unitime/events\_raw.csv}: każdy wiersz reprezentuje pojedyncze odbycie zajęć (instancję cykliczną), z~kolumnami:
 
 \begin{table}[H]
 \centering\small
@@ -552,7 +552,7 @@ if (global_stop) break;
 
 PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \texttt{initseq = rank}. Każdy rank ma niezależny strumień losowy zapewniający nieskorelowane subpopulacje --- klucz jakościowy modelu wyspowego.
 
-\subsection{Wykorzystane operacje MPI --- mapa „gdzie i kiedy"}
+\subsection{Wykorzystane operacje MPI --- mapa wywołań w kodzie}
 \label{sec:mpi-ops}
 
 Dokładny inwentarz wszystkich miejsc w~kodzie, w~których wywołujemy MPI, wraz z~częstotliwością i~rozmiarem przesyłanych danych:
