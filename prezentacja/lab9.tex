@@ -520,36 +520,6 @@ po runie mamy 16 trajektorii fitness na jednym wykresie.
 Lewy: soft viol vs $n_e$ (n=1 vs n=16). Prawy: czas wall-clock (skala log).
 \end{frame}
 
-\begin{frame}{Analiza wydajności --- prawo Amdahla i super-liniowość}
-\textbf{Amdahl:} $S(p) = \dfrac{1}{f + \frac{1-f}{p}},\quad S_\infty = \dfrac{1}{f}$
-
-Dla $n_e=100$: $f \approx 0.10 \Rightarrow S_\infty \approx 10\times$ (saturacja przy małej pracy).
-
-\vspace{0.4em}
-\centering\small
-\renewcommand{\arraystretch}{1.15}
-\begin{tabular}{rrrl}
-\toprule
-\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{Eff.} & \textbf{Reżim} \\
-\midrule
-100  &  6.32$\times$ &  39.5\% & \cellcolor{warning}podliniowy --- mała praca/wyspę \\
-200  & 11.18$\times$ &  69.9\% & \cellcolor{warning}podliniowy ze wzrastającą efektywnością \\
-400  & 22.38$\times$ & 139.9\% & \cellcolor{ok}\textbf{super-liniowy} (optimum) \\
-633  & 14.44$\times$ &  90.3\% & \cellcolor{ok}prawie liniowy z~saturacją (chromosom 5 KB) \\
-\bottomrule
-\end{tabular}
-
-\vspace{0.5em}
-\textbf{Skąd $S_{16} > 16\times$ dla $n_e{=}400$?} Algorytm wyspowy ze migracją to nie
-„ten sam GA podzielony na N", lecz \emph{inny algorytm} o lepszych właściwościach:
-\begin{itemize}\small
-    \item \textbf{Wielowyspowa eksploracja} --- 16 niezależnych populacji
-          (PCG32 \texttt{initseq=rank}) startuje z różnych regionów przestrzeni
-    \item \textbf{Migracja jako wymiana wiedzy} --- co 50 pokoleń dobre cechy
-          propagują się po pierścieniu
-\end{itemize}
-\end{frame}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Wnioski}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
