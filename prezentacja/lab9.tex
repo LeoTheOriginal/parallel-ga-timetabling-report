@@ -219,35 +219,39 @@ ze stałym ziarnem (\texttt{-{}-seed 42}) gwarantuje powtarzalność.
 Zamiast deterministycznie konstruować rozwiązanie ---
 utrzymujemy \emph{populację} kandydatów i~iteracyjnie ją doskonalimy.
 
-\vspace{0.5em}
+\vspace{1.2em}
 \centering
 \begin{tikzpicture}[
-    node distance=0.5cm,
-    box/.style={draw, rounded corners=4pt, minimum width=2.4cm,
-                minimum height=0.7cm, align=center, font=\footnotesize, thick},
-    arr/.style={-{Stealth[length=2.5mm]}, thick}
+    box/.style={draw, rounded corners=4pt, minimum width=2.6cm,
+                minimum height=0.85cm, align=center, font=\footnotesize, thick},
+    arr/.style={-{Stealth[length=2.5mm]}, thick},
+    loop/.style={-{Stealth[length=2.5mm]}, thick, dashed, obsGreenFg!80!black, rounded corners=8pt}
 ]
-\node[box, fill=ok]      (pop)    {Populacja $t$\\\tiny ($N$ chromosomów)};
-\node[box, fill=warning, right=0.4cm of pop]      (sel)    {Selekcja\\\tiny turniej $K{=}3$};
-\node[box, fill=warning, right=0.4cm of sel]      (cross)  {Krzyżowanie\\\tiny uniform $p{=}0.8$};
-\node[box, fill=danger,  below=0.4cm of cross]    (mut)    {Mutacja\\\tiny 1--5\%};
-\node[box, fill=danger,  left=0.4cm of mut]       (rep)    {Naprawa\\\tiny zachłanna};
-\node[box, fill=ok,      left=0.4cm of rep]       (eval)   {Ewaluacja\\\tiny + elityzm};
+% Top row
+\node[box, fill=ok]                              (pop)   {Populacja $t$\\\tiny ($N$ chromosomów)};
+\node[box, fill=warning, right=0.55cm of pop]    (sel)   {Selekcja\\\tiny turniej $K{=}3$};
+\node[box, fill=warning, right=0.55cm of sel]    (cross) {Krzyżowanie\\\tiny uniform $p{=}0.8$};
 
+% Bottom row (mirrored, with bigger vertical gap)
+\node[box, fill=danger, below=1.2cm of cross]    (mut)   {Mutacja\\\tiny 1--5\%};
+\node[box, fill=danger, left=0.55cm of mut]      (rep)   {Naprawa\\\tiny zachłanna};
+\node[box, fill=ok,     left=0.55cm of rep]      (eval)  {Ewaluacja\\\tiny + elityzm};
+
+% Forward chain
 \draw[arr] (pop)   -- (sel);
 \draw[arr] (sel)   -- (cross);
 \draw[arr] (cross.south) -- (mut.north);
 \draw[arr] (mut)   -- (rep);
 \draw[arr] (rep)   -- (eval);
-\draw[arr, dashed] (eval.north) |- ++(0,1) -| (pop.north)
-    node[pos=0.25, above, font=\scriptsize\itshape] {pop. $t{+}1$};
-\end{tikzpicture}
 
-\vspace{0.4em}
-\textbf{Dlaczego AG dla UCTP?}
-Przestrzeń rozwiązań rzędu $(35\!\times\!41)^{633} \approx 10^{2000}$ ---
-metody dokładne (B\&B, ILP) nie skalują. AG daje rozwiązania
-\emph{wystarczająco dobre} (feasible + zoptymalizowane miękkie) w~rozsądnym czasie.
+% Feedback loop: eval -> pop (route LEFT and AROUND, with label CLEARLY above pop)
+\draw[loop]
+    (eval.west) -- ++(-0.85, 0)
+    |- ($(pop.north) + (0, 0.7)$)
+    -- (pop.north);
+\node[font=\scriptsize\itshape, obsGreenFg!80!black, fill=white, inner sep=2pt]
+    at ($(pop.north) + (0, 0.7)$) {kolejne pokolenie $t{+}1$};
+\end{tikzpicture}
 \end{frame}
 
 \begin{frame}{Kodowanie i fitness}
