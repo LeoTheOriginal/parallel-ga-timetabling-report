@@ -54,6 +54,82 @@
 \section{Problem i skala}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}{Co to jest plan zajęć?}
+\textbf{University Course Timetabling Problem (UCTP):}
+\emph{układanie planu zajęć} --- przypisanie każdego zdarzenia (wykład, ćwiczenia, lab.)
+do konkretnego \emph{slotu czasowego} i~\emph{sali}, tak aby nie powstały konflikty.
+
+\vspace{0.4em}
+\centering
+\begin{tikzpicture}[
+    cell/.style={draw=gray!50, minimum width=1.55cm, minimum height=0.5cm, anchor=north west, font=\tiny},
+    hdr/.style={cell, fill=gray!20, font=\tiny\bfseries},
+    occ/.style={cell, fill=obsBlueBg, font=\tiny\sffamily},
+    lab/.style={cell, fill=obsGreenBg, font=\tiny\sffamily},
+    coll/.style={cell, fill=obsRedBg, font=\tiny\sffamily},
+]
+% Nagłówki dni
+\node[hdr, minimum width=1.1cm] at (0,    0) {Slot};
+\foreach \i/\d in {0/Pn, 1/Wt, 2/Śr, 3/Cz, 4/Pt}
+    \node[hdr] at (1.1+\i*1.55, 0) {\d};
+
+% Sloty (7 bloków)
+\foreach \r/\h in {0/8:00, 1/9:45, 2/11:30, 3/13:15, 4/15:00, 5/16:45, 6/18:30} {
+    \node[cell, minimum width=1.1cm, font=\tiny] at (0, -0.5-\r*0.5) {\h};
+    \foreach \c in {0,...,4} \node[cell] at (1.1+\c*1.55, -0.5-\r*0.5) {};
+}
+
+% Kilka przykładowych zajęć
+\node[occ] at (1.1+0*1.55, -0.5-0*0.5) {Algebra\\\tiny D-10\,225};
+\node[lab] at (1.1+2*1.55, -0.5-1*0.5) {Prog.\,lab\\\tiny LAB\,108};
+\node[occ] at (1.1+1*1.55, -0.5-2*0.5) {SRiR wyk\\\tiny D-10\,205};
+\node[lab] at (1.1+3*1.55, -0.5-2*0.5) {SRiR lab\\\tiny LAB\,204};
+\node[occ] at (1.1+4*1.55, -0.5-3*0.5) {Fizyka\\\tiny D-7\,015};
+
+% Konflikt --- przykład
+\node[coll] at (1.1+0*1.55, -0.5-4*0.5) {\textbf{!}\,kolizja\\\tiny ta sama sala};
+
+\end{tikzpicture}
+
+\vspace{0.3em}
+\centering\footnotesize
+\textcolor{obsBlueFg!90!black}{\rule{0.4cm}{1.2pt}} wykład \quad
+\textcolor{obsGreenFg!90!black}{\rule{0.4cm}{1.2pt}} laboratorium \quad
+\textcolor{obsRedFg!90!black}{\rule{0.4cm}{1.2pt}} naruszenie ograniczenia twardego
+\end{frame}
+
+\begin{frame}{Skala kombinatoryczna --- dlaczego nie metody dokładne?}
+\textbf{Rozmiar przestrzeni rozwiązań} dla naszego datasetu (UniTime AGH, sem. letni 2026):
+\[
+n_e = 633 \text{ zdarzeń},\quad |T| = 35 \text{ slotów},\quad |R| = 41 \text{ sal}
+\]
+\vspace{-0.5em}
+\[
+\Rightarrow \text{liczba możliwych planów} = (|T| \cdot |R|)^{n_e}
+= (35 \cdot 41)^{633} = 1435^{633} \approx 10^{\mathbf{2003}}
+\]
+
+\vspace{0.4em}
+\textbf{Dla porównania:}
+\begin{itemize}\footnotesize
+    \item liczba atomów w obserwowanym wszechświecie: $\sim 10^{80}$
+    \item liczba możliwych partii szachowych (Shannon): $\sim 10^{120}$
+    \item nasza przestrzeń rozwiązań UCTP: $\sim 10^{2003}$
+\end{itemize}
+
+\vspace{0.4em}
+\textbf{UCTP $\in$ NP-trudne} (Bańczyk et al., IEEE PARELEC'06): brak algorytmu wielomianowego.
+Metody dokładne (B\&B, ILP) eksplodują kombinatorycznie nawet dla 50~zdarzeń.
+
+\vspace{0.4em}
+\centering
+\fcolorbox{black}{ok}{\parbox{0.9\textwidth}{\centering\footnotesize
+\textbf{Stąd metaheurystyka:} algorytm genetyczny przeszukuje tę przestrzeń \emph{stochastycznie},
+oferując rozwiązania \emph{wystarczająco dobre} (feasible + zoptymalizowane miękkie)
+w~rozsądnym czasie ($T_{16}{=}11{,}08$\,s dla pełnego datasetu).
+}}
+\end{frame}
+
 \begin{frame}{University Course Timetabling Problem}
 \textbf{Cel:} przypisać zdarzenia (wykłady, laboratoria, seminaria) do par
 \((\text{slot czasowy}, \text{sala})\), spełniając ograniczenia twarde
