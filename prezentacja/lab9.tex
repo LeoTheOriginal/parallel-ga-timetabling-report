@@ -324,7 +324,7 @@ $\to$ nieskorelowane subpopulacje\\[2pt]
     src/.style={draw, rounded corners=3pt, fill=ok, minimum width=1.7cm, minimum height=0.55cm, align=center, font=\tiny, thick},
     proc/.style={draw, rounded corners=3pt, fill=warning, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick},
     mpiop/.style={draw, rounded corners=3pt, fill=warning!60!ok, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick, dashed},
-    out/.style={draw, rounded corners=3pt, fill=danger, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick},
+    output/.style={draw, rounded corners=3pt, fill=danger, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick},
     arr/.style={-{Stealth[length=1.8mm]}, thick}
 ]
 % Layer 1
@@ -345,9 +345,9 @@ $\to$ nieskorelowane subpopulacje\\[2pt]
 % Layer 5
 \node[mpiop, minimum width=2.2cm] (red) at (5.5, -3.5){\texttt{Allreduce}\\\tiny MINLOC};
 % Layer 6
-\node[out, minimum width=2.2cm] (timetable)  at (1.5, -2.7) {\texttt{timetable.txt}};
-\node[out, minimum width=2.2cm] (schedule)   at (1.5, -3.5) {\texttt{schedule.csv}};
-\node[out, minimum width=2.2cm] (conv_out)   at (1.5, -4.3) {\texttt{convergence\_rankN.csv}};
+\node[output, minimum width=2.2cm] (timetable)  at (1.5, -2.7) {\texttt{timetable.txt}};
+\node[output, minimum width=2.2cm] (schedule)   at (1.5, -3.5) {\texttt{schedule.csv}};
+\node[output, minimum width=2.2cm] (conv_out)   at (1.5, -4.3) {\texttt{convergence\_rankN.csv}};
 % arrows
 \draw[arr] (raw) -- (conv);
 \draw[arr] (conv.east) -- ++(0.2,0) |- (rooms.west);
