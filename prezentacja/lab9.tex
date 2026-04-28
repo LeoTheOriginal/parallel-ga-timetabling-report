@@ -562,29 +562,18 @@ Aplikacja \texttt{webapp.html} --- widok grupy \texttt{PIS-2} (32 zaj., 6 podgru
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Demo i Q\&A}
+\section{Zakończenie}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}{Demo --- działanie na klastrze}
-\centering\small
-\textbf{Plan demo (taurus + stud204-NN):}
-\begin{enumerate}
-    \item \texttt{ssh 2piotrowski@taurus.fis.agh.edu.pl} + środowisko MPI
-    \item \texttt{make} --- kompilacja
-    \item \texttt{make run} --- 1~proces, dane przykładowe (\texttt{simple\_n100/})
-    \item \texttt{mpiexec -f nodes -n 16 ./timetable\_ga data/simple\_n400/}
-    \item Wynik: \texttt{schedule.csv} + \texttt{timetable.txt} + \texttt{convergence\_rank*.csv}
-    \item Porównanie czasów $T_1$ vs $T_{16}$ na żywo
-\end{enumerate}
-
-\vspace{1em}
+\begin{frame}{Dziękujemy za uwagę}
+\vfill
 \begin{center}
 \Large \textbf{Pytania?}
 
-\vspace{0.5em}
-\small Dziękujemy za uwagę.\\
-\scriptsize Dawid Piotrowski \quad $\cdot$ \quad Julia Przeździk
+\vspace{1.5em}
+\normalsize Dawid Piotrowski \quad $\cdot$ \quad Julia Przeździk
 \end{center}
+\vfill
 \end{frame}
 
 \end{document}
