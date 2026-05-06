@@ -1,578 +1,1288 @@
-\documentclass[aspectratio=1610, polish]{beamer}
-\usepackage{babel}
-\usepackage{polski}
+\documentclass{common/sprawozdanie-agh}
 \usepackage[utf8]{inputenc}
-\usepackage{graphicx}
-\graphicspath{{../figures/}}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
 \usepackage{tabularx}
-\usepackage{array}
-\usepackage{colortbl}
-\usepackage{xcolor}
+\usepackage{float}
 \usepackage{amsmath}
-\usepackage{amssymb}
+\usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{positioning, calc, arrows.meta, shapes.geometric}
+\usepackage{listings}
+\usepackage[table]{xcolor}  % [table] -> auto-loads colortbl for \cellcolor / \rowcolor
+\usepackage{array}
 
-\mode<beamer>{
-    \hypersetup{pdfpagemode=FullScreen}
-    \usetheme[parttitle=rightfooter]{AGH}
+
+\graphicspath{{common/}{figures/}}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue!60!black,
+    urlcolor=blue!60!black,
+    citecolor=blue!60!black
 }
 
-% Pastelowa paleta zgodna z głównym raportem (Obsidian-friendly)
-\definecolor{obsBlueBg}{HTML}{DDE9F4}    \definecolor{obsBlueFg}{HTML}{2E5C8A}
-\definecolor{obsGreenBg}{HTML}{D9EAD3}   \definecolor{obsGreenFg}{HTML}{38761D}
-\definecolor{obsAmberBg}{HTML}{F4E3C3}   \definecolor{obsAmberFg}{HTML}{B45F06}
-\definecolor{obsPurpleBg}{HTML}{E4D6EF}  \definecolor{obsPurpleFg}{HTML}{6A3D9A}
-\definecolor{obsRedBg}{HTML}{F4CCCC}     \definecolor{obsRedFg}{HTML}{990000}
-\definecolor{obsOrangeBg}{HTML}{FCE5CD}  \definecolor{obsOrangeFg}{HTML}{B45F06}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc, matrix, fit}
 
-\definecolor{ok}{RGB}{220,237,200}
-\definecolor{warning}{RGB}{255,243,205}
-\definecolor{danger}{RGB}{255,220,220}
+% =====================================================================
+% LISTING STYLES
+% =====================================================================
 
-\author[Piotrowski, Przeździk]{Dawid Piotrowski \and Julia Przeździk}
-\date{29 kwietnia 2026}
-\title{Równoległy algorytm genetyczny}
-\subtitle{do układania planu zajęć uniwersyteckich --- Projekt nr 26}
-\institute[AGH]{
-    Wydział Fizyki i Informatyki Stosowanej\\
-    Akademia Górniczo-Hutnicza w Krakowie\\[2pt]
-    \small Systemy Równoległe i Rozproszone --- Lab.~9, gr.~1
+% --- Common colors ---
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{codeblue}{rgb}{0.13,0.29,0.53}
+\definecolor{codeorange}{rgb}{0.8,0.4,0.0}
+
+% --- Paleta pastelowa (spojna z notatkami Obsidian) ---
+\definecolor{obsBlueBg}{HTML}{E3F2FD}
+\definecolor{obsBlueFg}{HTML}{1565C0}
+\definecolor{obsGreenBg}{HTML}{E8F5E9}
+\definecolor{obsGreenFg}{HTML}{2E7D32}
+\definecolor{obsAmberBg}{HTML}{FFF8E1}
+\definecolor{obsAmberFg}{HTML}{F9A825}
+\definecolor{obsPurpleBg}{HTML}{F3E5F5}
+\definecolor{obsPurpleFg}{HTML}{7B1FA2}
+\definecolor{obsRedBg}{HTML}{FCE4EC}
+\definecolor{obsRedFg}{HTML}{C62828}
+\definecolor{obsOrangeBg}{HTML}{FFE0B2}
+\definecolor{obsOrangeFg}{HTML}{EF6C00}
+
+% --- Polish characters in listings (global) ---
+
+% --- C style ---
+\lstdefinestyle{cstyle}{
+    language=C,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    directivestyle=\color{codeorange},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=4,
+    morekeywords={uint32_t,uint64_t,int64_t,pcg32_random_t,
+                  Individual,Gene,ProblemData,GAConfig,Event,
+                  Room,Teacher,StudentGroup,Course,
+                  MPI_Comm,MPI_Status,MPI_Datatype},
 }
 
+% --- Bash style ---
+\lstdefinestyle{bashstyle}{
+    language=bash,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=none,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=2,
+    morekeywords={mpiexec,mpicc,make,gnuplot,source,export},
+}
+
+% --- Python style ---
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=4,
+}
+
+% --- Makefile style ---
+\lstdefinestyle{makefilestyle}{
+    language=make,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{codeblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=none,
+    showspaces=false,
+    showstringspaces=false,
+    tabsize=4,
+}
+
+% Default style + Polish characters (literate must be global, not inside \lstdefinestyle)
+\lstset{
+    style=cstyle,
+    literate=
+        {ą}{{\k a}}1 {Ą}{{\k A}}1
+        {ć}{{\'c}}1 {Ć}{{\'C}}1
+        {ę}{{\k e}}1 {Ę}{{\k E}}1
+        {ł}{{\l}}1 {Ł}{{\L}}1
+        {ń}{{\'n}}1 {Ń}{{\'N}}1
+        {ó}{{\'o}}1 {Ó}{{\'O}}1
+        {ś}{{\'s}}1 {Ś}{{\'S}}1
+        {ź}{{\'z}}1 {Ź}{{\'Z}}1
+        {ż}{{\.z}}1 {Ż}{{\.Z}}1
+}
+
+% =====================================================================
+% DOCUMENT
+% =====================================================================
 \begin{document}
-\maketitle
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{frame}{Plan prezentacji}
-    \tableofcontents
-\end{frame}
+\przedmiot{Systemy Równoległe i Rozproszone}
+\tytul{Równoległy algorytm genetyczny}
+\podtytul{do układania planu zajęć uniwersyteckich --- Projekt nr 26}
+\kierunek{Informatyka Stosowana}
+\wydzial{Fizyki i Informatyki Stosowanej}
+\autor{Dawid Piotrowski, Julia Przeździk}
+\data{Kraków, 2026}
+\stronatytulowa{}
+\tableofcontents
+\newpage
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Problem i skala}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% =====================================================================
+% 1. WSTĘP
+% =====================================================================
+\section{Wstęp}
 
-\begin{frame}{Czym jest UCTP?}
-\textbf{University Course Timetabling Problem (UCTP):}
-\emph{układanie planu zajęć} --- przypisanie każdego zdarzenia (wykład, ćwiczenia, lab.)
-do konkretnego \emph{slotu czasowego} i~\emph{sali}, tak aby nie powstały konflikty.
+Problem układania planu zajęć (UCTP) --- przypisanie zdarzeń do par (slot, sala) z~ograniczeniami --- jest NP-trudny~\cite{banczyk}. Zrównoleglenie algorytmu genetycznego (AG) modelem wyspowym (Island Model) pozwala na równoczesną eksplorację przestrzeni rozwiązań przez niezależne subpopulacje z~migracją~\cite{faris}.
 
-\vspace{0.5em}
+Implementacja: C + MPI, klaster wydziałowy AGH (16 węzłów MPI). Najwyższe zmierzone przyspieszenie: $S_{16}=22.38\times$ dla $n_e=400$ zdarzeń (super-liniowe).
+
+% =====================================================================
+% 2. OPIS PROBLEMU
+% =====================================================================
+\section{Opis problemu}
+
+\subsection{Definicja formalna}
+
+Problem definiujemy jako przypisanie zbioru zdarzeń $E = \{e_1, e_2, \ldots, e_n\}$ do par (slot czasowy, sala), przy spełnieniu ograniczeń twardych i~minimalizacji kar za naruszenie ograniczeń miękkich.
+
+\subsection{Encje}
+
+\begin{table}[H]
 \centering
-\renewcommand{\arraystretch}{1.4}
-\setlength{\tabcolsep}{2pt}
-\footnotesize
-\begin{tabular}{|c|c|c|c|c|c|}
-\hline
-\cellcolor{gray!20}\textbf{\scriptsize Slot} &
-\cellcolor{gray!20}\textbf{Pn} &
-\cellcolor{gray!20}\textbf{Wt} &
-\cellcolor{gray!20}\textbf{Śr} &
-\cellcolor{gray!20}\textbf{Cz} &
-\cellcolor{gray!20}\textbf{Pt} \\\hline
-\scriptsize 8:00  & \cellcolor{ok}\scriptsize Algebra\,(D-10) & --- & --- & --- & \cellcolor{ok}\scriptsize Fizyka\,(D-7) \\\hline
-\scriptsize 9:45  & --- & --- & \cellcolor{warning}\scriptsize Prog.\,lab\,(LAB-108) & --- & --- \\\hline
-\scriptsize 11:30 & --- & \cellcolor{ok}\scriptsize SRiR\,wyk\,(D-10) & --- & \cellcolor{warning}\scriptsize SRiR\,lab\,(LAB-204) & --- \\\hline
-\scriptsize 13:15 & \cellcolor{danger}\scriptsize \textbf{!}\,kolizja sali & --- & --- & --- & --- \\\hline
-\scriptsize 15:00 & --- & --- & --- & --- & --- \\\hline
-\scriptsize 16:45 & --- & --- & --- & --- & --- \\\hline
-\scriptsize 18:30 & --- & --- & --- & --- & --- \\\hline
-\end{tabular}
+\begin{tabularx}{\textwidth}{lrX}
+\toprule
+\textbf{Encja} & \textbf{Liczba} & \textbf{Opis} \\
+\midrule
+Zdarzenia (events)       & 633  & Pojedyncze bloki 1.5h zajęć \\
+Sale (rooms)             & 41   & W tym sale laboratoryjne \\
+Prowadzący (teachers)    & 161  & Nauczyciele akademiccy \\
+Grupy (student groups)   & 191  & Grupy studenckie \\
+Kursy (courses)          & 633  & Z przypisanymi prowadzącymi i grupami \\
+Sloty czasowe            & 35   & $5 \text{ dni} \times 7 \text{ bloków 1.5h}$ \\
+\bottomrule
+\end{tabularx}
+\caption{Encje problemu --- dane z systemu UniTime AGH (semestr letni 2026)}
+\label{tab:entities}
+\end{table}
 
-\vspace{0.5em}
-\centering\footnotesize
-\fcolorbox{black}{ok}{\rule{0pt}{6pt}\rule{6pt}{0pt}} wykład \quad
-\fcolorbox{black}{warning}{\rule{0pt}{6pt}\rule{6pt}{0pt}} laboratorium \quad
-\fcolorbox{black}{danger}{\rule{0pt}{6pt}\rule{6pt}{0pt}} naruszenie ograniczenia twardego
-\end{frame}
+\subsection{Ograniczenia twarde}
 
-\begin{frame}{Skala kombinatoryczna --- dlaczego nie metody dokładne?}
-\textbf{Rozmiar przestrzeni rozwiązań} dla naszego datasetu (UniTime AGH, sem. letni 2026):
-\[
-n_e = 633 \text{ zdarzeń},\quad |T| = 35 \text{ slotów},\quad |R| = 41 \text{ sal}
-\]
-\vspace{-0.5em}
-\[
-\Rightarrow \text{liczba możliwych planów} = (|T| \cdot |R|)^{n_e}
-= (35 \cdot 41)^{633} = 1435^{633} \approx 10^{\mathbf{2003}}
-\]
+Ograniczenia twarde muszą być bezwzględnie spełnione:
 
-\vspace{0.4em}
-\textbf{Dla porównania:}
-\begin{itemize}\footnotesize
-    \item liczba atomów w obserwowanym wszechświecie: $\sim 10^{80}$
-    \item liczba możliwych partii szachowych (Shannon): $\sim 10^{120}$
-    \item nasza przestrzeń rozwiązań UCTP: $\sim 10^{2003}$
-\end{itemize}
-
-\vspace{0.4em}
-\textbf{UCTP $\in$ NP-trudne} (Bańczyk et al., IEEE PARELEC'06): brak algorytmu wielomianowego.
-Metody dokładne (B\&B, ILP) eksplodują kombinatorycznie nawet dla 50~zdarzeń.
-
-\vspace{0.4em}
-\centering
-\fcolorbox{black}{ok}{\parbox{0.9\textwidth}{\centering\footnotesize
-\textbf{Stąd metaheurystyka:} algorytm genetyczny przeszukuje tę przestrzeń \emph{stochastycznie},
-oferując rozwiązania \emph{wystarczająco dobre} (feasible + zoptymalizowane miękkie)
-w~rozsądnym czasie ($T_{16}{=}11{,}08$\,s dla pełnego datasetu).
-}}
-\end{frame}
-
-\begin{frame}{University Course Timetabling Problem}
-\textbf{Cel:} przypisać zdarzenia (wykłady, laboratoria, seminaria) do par
-\((\text{slot czasowy}, \text{sala})\), spełniając ograniczenia twarde
-i minimalizując karę za miękkie.
-
-\vspace{0.3em}
-\begin{columns}[T]
-\column{0.5\textwidth}
-\textbf{Ograniczenia twarde (kary $\times$1000):}
-\begin{itemize}\footnotesize
-    \item kolizja sali
-    \item kolizja prowadzącego
-    \item kolizja grupy studenckiej
-    \item niewłaściwy typ sali (lab/wykład)
-    \item przepełnienie dnia
-\end{itemize}
-
-\column{0.5\textwidth}
-\textbf{Ograniczenia miękkie (kary $\times$1--2):}
-\begin{itemize}\footnotesize
-    \item okienka w planie grupy
-    \item kompaktowość dni
-    \item zajęcia późnym popołudniem
-    \item kompaktowość prowadzących
-    \item pojemność sal vs liczność grup
-    \item ciągłość budynków (D-7 / D-10 / D-11)
-\end{itemize}
-\end{columns}
-
-\vspace{0.3em}
-\begin{center}
-\fcolorbox{black}{ok}{\parbox{0.92\textwidth}{\centering\footnotesize
-\textbf{Dataset (UniTime AGH, sem. letni 2026):}
-\textbf{633} zdarzeń · \textbf{41} sal · \textbf{161} prowadzących · \textbf{191} grup · \textbf{35} slotów (5 dni $\times$ 7 bloków 1.5\,h)
-}}
-\end{center}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Konwersja danych UniTime}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{frame}{Pipeline danych: UniTime $\to$ 4 CSV}
-\textbf{Źródło:} produkcyjny eksport \texttt{events\_raw.csv} z~UniTime AGH ---
-\textbf{8\,283 linii} fizycznych, \textbf{4\,587 logicznych rekordów} CSV.
-
-\vspace{0.3em}
-\textbf{\texttt{convert\_simple.py}} (243 LoC) --- 4-etapowy pipeline:
-
-\begin{enumerate}\small
-    \item \textbf{Filtr strict 1.5h} --- akceptujemy tylko zdarzenia
-          dokładnie pokrywające 7 bloków AGH
-          (8:00--9:30, \ldots, 18:30--20:00) w~budynkach D-7/D-10/D-11.
-          Odsiewamy egzaminy, kolokwia, NST, SZD.
-          \textbf{$\to$~1\,726 zdarzeń kandydujących}
-    \item \textbf{Deduplikacja} --- tygodniowe
-          powtórzenia (14$\times$ wykład) do pojedynczej instancji.
-          \textbf{$\to$~633 unikalne zdarzenia tygodniowe}
-    \item \textbf{Mapowanie encji} --- ID dla \textbf{41 sal},
-          \textbf{161 prowadzących}, \textbf{191 grup}.
-    \item \textbf{Grupy nadrzędne wykładów} --- 12 programów (\texttt{FiIS-PFT-1},
-          \texttt{FiIS-OB}, \ldots) z~\texttt{parent\_group\_id} dla
-          wykrywania kolizji wykład $\times$ ćwiczenia podgrupy.
+\begin{enumerate}
+    \item \textbf{Kolizja sal} --- w~jednej sali w~danym slocie może odbywać się co najwyżej jedno zdarzenie.
+    \item \textbf{Kolizja prowadzących} --- prowadzący nie może prowadzić dwóch zajęć jednocześnie.
+    \item \textbf{Kolizja grup} --- grupa studencka nie może mieć dwóch zajęć jednocześnie.
+    \item \textbf{Typ sali} --- zajęcia laboratoryjne muszą odbywać się w~salach laboratoryjnych.
+    \item \textbf{Przepełnienie dnia} --- zdarzenie nie może wykraczać poza ostatni blok dnia.
 \end{enumerate}
-\end{frame}
 
-\begin{frame}{Podzbiory deterministyczne}
-\textbf{4 datasety dla testów skalowalności} --- losowanie podzbioru zdarzeń
-ze stałym ziarnem (\texttt{-{}-seed 42}) gwarantuje powtarzalność.
+\subsection{Ograniczenia miękkie}
 
-\vspace{0.6em}
-\textbf{Rozmiary encji per dataset:}
+\begin{enumerate}
+    \item \textbf{Okienka} --- minimalizacja przerw między zajęciami grupy w~ciągu dnia (waga $\times 2$).
+    \item \textbf{Kompaktowe dni} --- preferowanie mniejszej liczby dni z~zajęciami.
+    \item \textbf{Późne zajęcia} --- kara za zajęcia w~ostatnich 2 okresach dnia (bloki 16:45--20:00).
+    \item \textbf{Kompaktowość prowadzących} --- minimalizacja liczby dni prowadzenia.
+    \item \textbf{Pojemność sal} --- kara gdy liczba studentów przekracza pojemność sali.
+    \item \textbf{Ciągłość budynków} --- kara za zmianę budynku w~ciągu dnia dla grupy.
+\end{enumerate}
+
+% =====================================================================
+% 3. KONWERSJA DANYCH UNITIME -> CSV
+% =====================================================================
+\section{Konwersja i pobieranie danych}
+\label{sec:unitime}
+
+\subsection{Źródło: system UniTime AGH}
+
+Dane wejściowe pochodzą z~produkcyjnej instancji systemu UniTime używanej przez Wydział FiIS AGH do układania semestralnego planu zajęć. Eksport surowych zdarzeń (semestr letni 2025/26) znajduje się w~pliku \path{data/unitime/events_raw.csv} (\textbf{8\,283 linie} fizyczne, \textbf{4\,587 logicznych rekordów} CSV po sparsowaniu wieloliniowych komórek przez \texttt{csv.reader}). Każdy rekord reprezentuje pojedyncze odbycie zajęć (instancję cykliczną w~konkretnym dniu semestru), z~kolumnami:
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{rlcX}
+\toprule
+\textbf{\#} & \textbf{Kolumna (oryg. nagłówek)} & \textbf{Używana?} & \textbf{Zawartość} \\
+\midrule
+ 1 & \texttt{Nazwa}                       & \cellcolor{obsGreenBg}tak & identyfikator kierunku/programu (np. \texttt{FiIS-PFT-1 EiOpt(1rok)}) \\
+ 2 & \texttt{Grupa}                       & \cellcolor{obsGreenBg}tak & numer podgrupy (1, 1a, 2, \ldots) \\
+ 3 & \texttt{Typ}                         & \cellcolor{obsGreenBg}tak & rodzaj zajęć: Wykład, CWA, CWL, Zajęcia seminaryjne, \ldots \\
+ 4 & \texttt{Tytuł}                       & \cellcolor{obsGreenBg}tak & nazwa przedmiotu \\
+ 5 & \texttt{Uwaga}                       & \cellcolor{obsRedBg}nie    & wewnętrzny opis (np. rozkład godzin \texttt{15/0/15/0/15s}) \\
+ 6 & \texttt{Dzień tygodnia}              & \cellcolor{obsGreenBg}tak & Pn, Wt, Śr, Cz, Pt (lub kombinacje typu \texttt{PnŚr}) \\
+ 7 & \texttt{Pierwszy dzień}              & \cellcolor{obsRedBg}nie    & data pierwszego wystąpienia (np. \texttt{17.3.2026}) \\
+ 8 & \texttt{Ostatni dzień}               & \cellcolor{obsRedBg}nie    & data ostatniego wystąpienia \\
+ 9 & \texttt{Ogłoszony początek}          & \cellcolor{obsGreenBg}tak & godzina rozpoczęcia w~formacie \texttt{H:MM} \\
+10 & \texttt{Ogłoszony koniec}            & \cellcolor{obsGreenBg}tak & godzina zakończenia w~formacie \texttt{H:MM} \\
+11 & \texttt{Miejsce}                     & \cellcolor{obsGreenBg}tak & nazwa sali z~prefiksem budynku (\texttt{D-10 225}) \\
+12 & \texttt{Pojemność}                   & \cellcolor{obsGreenBg}tak & liczba miejsc w~sali \\
+13 & \texttt{Prowadzący / Odpowiedzialny} & \cellcolor{obsGreenBg}tak & tytuł naukowy + nazwisko + inicjał (np. \texttt{dr Fiedor, J}) \\
+14 & \texttt{E-mail}                      & \cellcolor{obsRedBg}nie    & e-mail prowadzącego \\
+15 & \texttt{Żądane usługi}               & \cellcolor{obsRedBg}nie    & dodatkowe wymagania (najczęściej puste) \\
+16 & \texttt{Zatwierdzony}                & \cellcolor{obsRedBg}nie    & data zatwierdzenia rezerwacji \\
+\bottomrule
+\end{tabularx}
+\caption{Format surowego eksportu UniTime --- wszystkie 16~kolumn w~kolejności występowania w~pliku \texttt{events\_raw.csv}. Konwerter \texttt{scripts/convert\_simple.py} korzysta z~9~kolumn (zielone), pozostałe 7~jest pomijane.}
+\end{table}
+
+\subsection{Pipeline konwersji \texttt{convert\_simple.py}}
+
+Skrypt \texttt{scripts/convert\_simple.py} (243~linie Pythona) realizuje 4-etapowy pipeline:
+
+\begin{enumerate}
+\item \textbf{Filtracja strict} --- akceptujemy zdarzenie tylko gdy:
+\begin{itemize}\small
+    \item czas startu i końca \emph{dokładnie} pokrywa się z~jednym z~7~bloków AGH 1.5\,h (8:00--9:30, 9:45--11:15, 11:30--13:00, 13:15--14:45, 15:00--16:30, 16:45--18:15, 18:30--20:00);
+    \item budynek $\in \{$D-7, D-10, D-11$\}$;
+    \item tytuł nie zaczyna się od: \texttt{egzamin}, \texttt{konsultacje}, \texttt{kolokwium}, \texttt{zaliczenie}, \texttt{odrobienie}, \texttt{odrabianie} (lista \texttt{SKIP\_TYTUL} w~\path{convert_simple.py});
+    \item nie zawiera znaczników: \texttt{[NST]} (niestacjonarne), \texttt{-SZD}, \texttt{FiIS-INNE};
+    \item ma znanego prowadzącego (niepusty wiersz).
+\end{itemize}
+Z~\textbf{4\,587 rekordów surowych} po filtracji \emph{strict} pozostaje \textbf{1\,726 zdarzeń} kandydujących (zweryfikowane uruchomieniem konwertera na bieżącym pliku \path{events_raw.csv}).
+
+\item \textbf{Deduplikacja} --- wiele wystąpień tego samego cyklicznego zdarzenia (np. wykład co tydzień przez 14~tygodni) redukujemy do pojedynczej instancji tygodniowej. Klucz deduplikacji (tryb \texttt{-{}-no-grupa}, jak w~używanym datasecie \path{data/simple/}):
+\[ (\text{nazwa},\ \text{typ},\ \text{tytuł},\ \text{dzień},\ \text{prowadzący}) \]
+Po deduplikacji pozostaje \textbf{633~unikalne zdarzenia tygodniowe}, co odpowiada plikowi \path{data/simple/courses.csv} w~repozytorium.
+
+\item \textbf{Mapowanie encji} --- niezależne słowniki ID dla sal, prowadzących i~grup, generowane przez kolejne wystąpienia w~zdeduplikowanej liście:
+\[
+\begin{aligned}
+\texttt{room\_map}    &: \text{nazwa sali} \to \text{id} \in \{1,\ldots,\mathbf{41}\} \\
+\texttt{teacher\_map} &: \text{nazwisko}   \to \text{id} \in \{1,\ldots,\mathbf{161}\} \\
+\texttt{group\_map}   &: \text{nazwa programu} \to \text{id} \in \{1,\ldots,\mathbf{191}\}
+\end{aligned}
+\]
+
+\item \textbf{Generacja grup nadrzędnych dla wykładów} --- jeśli ten sam program akademicki ma wykład wspólny dla wielu podgrup, tworzymy \emph{grupę nadrzędną} (\texttt{parent\_group\_id} $\in$ 192--203). W~bieżącym datasecie konwerter wykrywa \textbf{12 programów} z~wykładami: \texttt{FiIS\,[ESA]}, \texttt{FiIS-OB}, \texttt{FiIS-PCP-1}, \texttt{FiIS-PFM-1}, \texttt{FiIS-PFM-2}, \texttt{FiIS-PFT-1}, \texttt{FiIS-PFT-2}, \texttt{FiIS-PIS-1}, \texttt{FiIS-PIS-2}, \texttt{FiIS-PMB-1}, \texttt{FiIS-PMB-2}, \texttt{FiIS-PNM-1}. Pozwala to wykryć kolizję typu „wykład i~ćwiczenia tej samej podgrupy w~tym samym slocie".
+\end{enumerate}
+
+\paragraph{Rozkład zdarzeń wg typu} (zweryfikowany na \path{data/simple/courses.csv}):
+
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lr}
+\toprule
+\textbf{Typ zajęć} & \textbf{Liczba} \\
+\midrule
+Wykład                  & 221 \\
+CWA (ćwiczenia audytoryjne)  & 159 \\
+CWL (ćwiczenia laboratoryjne) & 151 \\
+Ćwiczenia projektowe    & 50 \\
+Zajęcia seminaryjne     & 26 \\
+Zajęcia warsztatowe     & 21 \\
+Konwersatorium          & 5 \\
+\midrule
+\textbf{Razem}          & \textbf{633} \\
+\bottomrule
+\end{tabular}
+\caption{Rozkład zdarzeń tygodniowych wg typu}
+\end{table}
+
+\subsection{Wynik: 4 znormalizowane CSV + plan referencyjny}
+
+\begin{lstlisting}[style=bashstyle, caption={Wywołanie skryptu konwersji}]
+python3 scripts/convert_simple.py data/unitime/events_raw.csv data/unitime/ --stats
+\end{lstlisting}
+
+Skrypt produkuje 5~plików w~katalogu wynikowym:
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Plik} & \textbf{Schemat (zweryfikowany na \texttt{head -1 data/simple/*.csv})} \\
+\midrule
+\texttt{rooms.csv}             & \texttt{id, name, capacity, is\_lab} (4~kolumny, 41~wierszy) \\
+\texttt{teachers.csv}          & \texttt{id, name} (2~kolumny, 161~wierszy) \\
+\texttt{groups.csv}            & \texttt{id, name, num\_students} (3~kolumny, 191~wierszy) \\
+\texttt{courses.csv}           & \texttt{id, name, teacher\_id, group\_id, hours\_per\_week,} \\
+                               & \texttt{requires\_lab, duration\_slots} (7~kolumn, 633~wiersze)$^*$ \\
+\texttt{original\_schedule.csv} & przypisania UniTime (referencja jakości) \\
+\bottomrule
+\end{tabularx}
+\caption{Pliki wyjściowe konwertera --- format spożywany przez \texttt{io.c}. $^*$Plik \texttt{data/simple/courses.csv} ma 7~kolumn (legacy format); aktualna wersja konwertera generuje dodatkowo 8.~kolumnę \texttt{parent\_group\_id} dla detekcji konfliktów wykład--podgrupa, którą \texttt{io.c:load\_courses} traktuje jako opcjonalną (default 0).}
+\end{table}
+
+\subsection{Podzbiory skalowalności (subsetting)}
+
+Do testów skalowalności tworzymy 3~podzbiory deterministyczne (\texttt{-{}-seed 42}) bezpośrednio z~pełnego datasetu:
+
+\begin{lstlisting}[style=bashstyle]
+python3 scripts/convert_simple.py events_raw.csv data/simple_n100/ --subset 100
+python3 scripts/convert_simple.py events_raw.csv data/simple_n200/ --subset 200
+python3 scripts/convert_simple.py events_raw.csv data/simple_n400/ --subset 400
+\end{lstlisting}
+
+Każdy podzbiór mapuje encje \emph{tylko obecne} w~próbce (nie kopiuje pełnego słownika z~datasetu pełnego).
+
+\begin{table}[H]
 \centering\small
 \begin{tabular}{lrrrr}
 \toprule
 \textbf{Dataset} & \textbf{Zdarzenia} & \textbf{Sale} & \textbf{Prowadzący} & \textbf{Grupy} \\
 \midrule
-\path{simple_n100/} & 100 & 27  & 70  & 70  \\
-\path{simple_n200/} & 200 & 32  & 106 & 116 \\
-\path{simple_n400/} & 400 & 37  & 144 & 164 \\
-\path{simple/}      & 633 & 41  & 161 & 191 \\
+\path{data/simple_n100/} & 100  & 27  & 70  & 70  \\
+\path{data/simple_n200/} & 200  & 32  & 106 & 116 \\
+\path{data/simple_n400/} & 400  & 37  & 144 & 164 \\
+\path{data/simple/}      & 633  & 41  & 161 & 191 \\
 \bottomrule
 \end{tabular}
+\caption{Rozmiary encji w~każdym datasecie --- mniejsze podzbiory mają proporcjonalnie mniej sal/prowadzących/grup, ponieważ konwerter mapuje tylko encje obecne w~wylosowanej próbce.}
+\label{tab:datasets}
+\end{table}
 
-\vspace{0.6em}
-\centering\small
-\textbf{Subset stratyfikowany po zdarzeniach} --- mniejszy dataset ma proporcjonalnie mniej encji
-(encja wybierana tylko jeśli pojawia się w~próbce zdarzeń).
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% =====================================================================
+% 4. ALGORYTM GENETYCZNY
+% =====================================================================
 \section{Algorytm genetyczny}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}{Czym jest algorytm genetyczny?}
-\textbf{Stochastyczna metaheurystyka} inspirowana doborem naturalnym.
-Zamiast deterministycznie konstruować rozwiązanie ---
-utrzymujemy \emph{populację} kandydatów i~iteracyjnie ją doskonalimy.
+\subsection{Idea i intuicja}
 
-\vspace{1.2em}
-\centering
-\begin{tikzpicture}[
-    box/.style={draw, rounded corners=4pt, minimum width=2.6cm,
-                minimum height=0.85cm, align=center, font=\footnotesize, thick},
-    arr/.style={-{Stealth[length=2.5mm]}, thick},
-    loop/.style={-{Stealth[length=2.5mm]}, thick, dashed, obsGreenFg!80!black, rounded corners=8pt}
-]
-% Top row
-\node[box, fill=ok]                              (pop)   {Populacja $t$\\\tiny ($N$ chromosomów)};
-\node[box, fill=warning, right=0.55cm of pop]    (sel)   {Selekcja\\\tiny turniej $K{=}3$};
-\node[box, fill=warning, right=0.55cm of sel]    (cross) {Krzyżowanie\\\tiny uniform $p{=}0.8$};
+Algorytm genetyczny (AG) jest \emph{stochastyczną metaheurystyką} inspirowaną doborem naturalnym. Zamiast deterministycznie konstruować rozwiązanie, AG utrzymuje populację kandydatów (chromosomów) i~iteracyjnie ją doskonali poprzez analogie do mechanizmów ewolucji:
 
-% Bottom row (mirrored, with bigger vertical gap)
-\node[box, fill=danger, below=1.2cm of cross]    (mut)   {Mutacja\\\tiny 1--5\%};
-\node[box, fill=danger, left=0.55cm of mut]      (rep)   {Naprawa\\\tiny zachłanna};
-\node[box, fill=ok,     left=0.55cm of rep]      (eval)  {Ewaluacja\\\tiny + elityzm};
+\begin{itemize}
+\item \textbf{Selekcja} --- lepsze chromosomy (niższy fitness) mają większą szansę reprodukcji;
+\item \textbf{Krzyżowanie} --- dwóch rodziców daje potomka łączącego cechy obojga;
+\item \textbf{Mutacja} --- losowe drobne modyfikacje wprowadzają różnorodność i~wyciągają algorytm z~lokalnych minimów;
+\item \textbf{Elityzm} --- najlepszy osobnik trafia do następnego pokolenia bez zmian, gwarantując monotoniczność procesu.
+\end{itemize}
 
-% Forward chain
-\draw[arr] (pop)   -- (sel);
-\draw[arr] (sel)   -- (cross);
-\draw[arr] (cross.south) -- (mut.north);
-\draw[arr] (mut)   -- (rep);
-\draw[arr] (rep)   -- (eval);
+Dla UCTP --- problemu NP-trudnego o~rozmiarze przestrzeni rozwiązań rzędu $(\text{slots}\times\text{rooms})^{\text{events}} = (35\times41)^{633} \approx 10^{2000}$ --- klasyczne metody dokładne (branch~\&~bound, programowanie całkowitoliczbowe) nie skalują się. AG daje rozwiązania \emph{wystarczająco dobre} (feasible + zoptymalizowane miękkie) w~rozsądnym czasie.
 
-% Feedback loop: eval -> pop (route LEFT and AROUND, with label CLEARLY above pop)
-\draw[loop]
-    (eval.west) -- ++(-0.85, 0)
-    |- ($(pop.north) + (0, 0.7)$)
-    -- (pop.north);
-\node[font=\scriptsize\itshape, obsGreenFg!80!black, fill=white, inner sep=2pt]
-    at ($(pop.north) + (0, 0.7)$) {kolejne pokolenie $t{+}1$};
-\end{tikzpicture}
-\end{frame}
-
-\begin{frame}{Kodowanie i fitness}
-\textbf{Chromosom} = wektor genów, gen \(g_i = (\text{slot}_i, \text{sala}_i)\)
-dla każdego zdarzenia. Długość chromosomu = liczba zdarzeń.
-
-\vspace{0.5em}
-\textbf{Fitness dwupoziomowy:}
+\textbf{Cykl życia jednego pokolenia} (slajd~\ref{fig:ga-operators}):
 \[
-\mathrm{fitness}(c) = 1000 \cdot H(c) + S(c)
+\underbrace{\text{Populacja}_t}_{\text{N osobników}}
+\xrightarrow{\text{selekcja}}
+\text{rodzice}
+\xrightarrow{\text{cross+mut}}
+\text{potomkowie}
+\xrightarrow{\text{repair}}
+\underbrace{\text{Populacja}_{t+1}}_{\text{N osobników}}
 \]
-\begin{itemize}\small
-    \item \(H(c)\) --- liczba naruszeń twardych (do wyzerowania)
-    \item \(S(c)\) --- suma kar miękkich (do minimalizacji po osiągnięciu \(H=0\))
+
+\subsection{Kodowanie chromosomu}
+
+Kodowanie bezpośrednie: każdy gen odpowiada jednemu zdarzeniu, a~jego wartością jest para \texttt{(timeslot, room\_id)}.
+
+\begin{lstlisting}[style=cstyle, caption={Struktury danych chromosomu (types.h)}]
+typedef struct {
+    int timeslot;   /* 0..TOTAL_TIMESLOTS-1 */
+    int room_id;    /* 1..num_rooms (1-indexed) */
+} Gene;
+
+typedef struct {
+    Gene genes[MAX_EVENTS];
+    int fitness_hard;   /* naruszenia twarde */
+    int fitness_soft;   /* kara miekka */
+    int fitness;        /* hard * 1000 + soft */
+} Individual;
+\end{lstlisting}
+
+Ocena łączna:
+\begin{equation}
+    \texttt{fitness} = \texttt{fitness\_hard} \times 1000 + \texttt{fitness\_soft}
+\end{equation}
+
+\subsection{Funkcja oceny}
+
+Ewaluacja dwupoziomowa wg Banczyk et al.~\cite{banczyk}:
+
+\begin{itemize}
+    \item \textbf{Ograniczenia twarde:} tablice zajętości \texttt{room\_occ[ts][room]}, \texttt{teacher\_occ[ts][teacher]}, \texttt{group\_occ[ts][group]}. Każde nadmiarowe wystąpienie (occupancy $> 1$) to naruszenie.
+    \item \textbf{Ograniczenia miękkie:} okienka, obciążenie, późne zajęcia, kompaktowość, pojemność, ciągłość budynków.
 \end{itemize}
 
-\vspace{0.4em}
-Porównywanie osobników: dwupoziomowo \((H, S)\) leksykograficznie ---
-osobnik z \(H=0\) zawsze lepszy od dowolnego z \(H>0\).
-\end{frame}
+\subsection{Operatory genetyczne}
 
-\begin{frame}{Operatory genetyczne}
-\renewcommand{\arraystretch}{1.15}
-\centering\small
-\begin{tabular}{>{\bfseries}l p{0.62\textwidth}}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{lX}
 \toprule
-Selekcja      & turniej $K=3$, dwupoziomowe porównanie \((H, S)\) \\
-Krzyżowanie   & uniform 50/50, prawdopodobieństwo $p_c = 0{,}8$ \\
-Mutacja       & adaptacyjna: $5\%$ przy $H>0$, $1\%$ przy $H=0$ \\
-Naprawa       & zachłanna: 20 losowych prób + systematyczny skan \\
-Elityzm       & najlepszy osobnik zawsze przechodzi do następnego pokolenia \\
-Local search  & hill climbing 5000 iteracji po zakończeniu GA \\
+\textbf{Operator} & \textbf{Opis} \\
+\midrule
+Selekcja    & Turniejowa $K=3$, porównanie dwupoziomowe (hard $\to$ soft) \\
+Krzyżowanie & Jednorodne (uniform) 50/50 per gen, prawdopodobieństwo 0.8 \\
+Mutacja     & Per-genowa, adaptacyjna: 5\% gdy hard$>$0, 1\% gdy hard$=$0 \\
+Naprawa     & Zachłanna: 20 losowych prób + systematyczny skan \\
+Elityzm     & Najlepszy osobnik kopiowany do następnego pokolenia \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
+\caption{Operatory algorytmu genetycznego}
+\end{table}
 
-\vspace{0.7em}
-\begin{center}
-\fcolorbox{black}{ok}{\parbox{0.85\textwidth}{\centering\small
-\textbf{Terminacja:} stagnacja $\geq 200$ pokoleń \emph{lub}
-$\mathrm{fitness}=0$ \emph{lub} max 500 pokoleń.\\
-Synchroniczna terminacja na klastrze przez \texttt{MPI\_Allreduce(MAX)}.
-}}
-\end{center}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Stack i klaster}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{frame}{Stack i klaster}
-\begin{columns}[T]
-\column{0.5\textwidth}
-\textbf{Stack technologiczny:}
-\begin{itemize}\small
-    \item \textbf{C99}
-    \item \textbf{MPICH 5.0} + CUDA 12.1
-    \item \textbf{PCG32} --- per-rank PRNG
-    \item \textbf{gnuplot} --- wykresy speedup/konwergencji
-    \item \textbf{Make} --- 7 reguł (\texttt{run}, \texttt{benchmark}, \texttt{plot}, \texttt{archive}, \ldots)
-\end{itemize}
-
-\column{0.5\textwidth}
-\textbf{Klaster AGH (sala 204, D-10):}
-\begin{itemize}\small
-    \item \texttt{taurus.fis.agh.edu.pl} --- node logujący
-    \item 16 węzłów \texttt{stud204-01..16}
-    \item kompilacja: \texttt{-Wl,--allow-shlib-undefined}\\(taurus bez sterownika NVIDIA)
-    \item uruchamianie: \texttt{mpiexec -f nodes -n N ./timetable\_ga}
-\end{itemize}
-\end{columns}
-
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Architektura równoległa}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{frame}{Island Model --- topologia pierścienia}
+\begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    isl/.style={draw, circle, minimum size=1.4cm, align=center, font=\scriptsize, thick,
-                fill=obsBlueBg, draw=obsBlueFg},
-    arr/.style={-{Stealth[length=2.5mm]}, thick, obsBlueFg},
-    darr/.style={-{Stealth[length=2.5mm]}, thick, dashed, obsAmberFg},
-    barr/.style={-{Stealth[length=2.5mm]}, thick, obsGreenFg, dashed},
+    gene/.style={draw, minimum width=1.05cm, minimum height=0.65cm, align=center, font=\footnotesize\ttfamily, thick, inner sep=1pt},
+    rowlabel/.style={font=\footnotesize\bfseries, anchor=east},
+    arr/.style={-{Stealth[length=2mm]}, thick},
 ]
-% Wyspy ułożone zegarowo: 0(top) -> 1(right) -> 2(bottom) -> N-1(left) -> 0
-\node[isl] (r0) at (90:2.3)   {Wyspa 0\\\tiny rank 0};
-\node[isl] (r1) at (0:2.3)    {Wyspa 1\\\tiny rank 1};
-\node[isl] (r2) at (-90:2.3)  {Wyspa 2\\\tiny rank 2};
-\node[isl] (r3) at (180:2.3)  {Wyspa\\$N{-}1$};
 
-% Ring migration: 0 -> 1 -> 2 (solid), 2 -> N-1 (dashed = pomijamy resztę), N-1 -> 0 (solid)
-\draw[arr] (r0) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r1);
-\draw[arr] (r1) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r2);
-\draw[-{Stealth[length=2.5mm]}, thick, dashed, obsBlueFg] (r2) to[bend left=18]
-    node[midway, sloped, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {$\cdots$\,Sendrecv\,$\cdots$} (r3);
-\draw[arr] (r3) to[bend left=18] node[midway, sloped, above, font=\tiny\bfseries] {Sendrecv} (r0);
+% Spacing: każda komórka 1.05cm szer., odstęp między środkami 1.2cm → gap 0.15cm
+% Centra komórek: 1.3, 2.5, 3.7, 4.9, 6.1 (środek rzędu = 3.7)
 
-% CSV (lewo-góra) -> Bcast -> 3 widoczne wyspy (0, N-1, 2) — strzałki w lewy bok każdego koła
-\node[draw, rectangle, rounded corners=3pt, fill=obsGreenBg, draw=obsGreenFg,
-      font=\scriptsize, align=center, inner sep=4pt]
-    (csv) at (-5.5, 3.2) {\textbf{Dane CSV}\\\tiny rooms, teachers,\\\tiny groups, courses};
+% --- Krzyżowanie jednorodne ---
+\node[font=\small\bfseries] at (3.7, 1.0) {Krzyżowanie jednorodne (uniform crossover, $p=0.8$)};
 
-\draw[barr] (csv.east) to[out=-10, in=180]
-    node[pos=0.6, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Bcast}
-    (r0.west);
-\draw[barr] (csv.south) to[out=-90, in=180] (r3.west);
-\draw[barr] (csv.south east) to[out=-60, in=180] (r2.west);
-
-% rank 0 -> Allreduce(MINLOC) -> Globalny najlepszy (prawo-góra)
-\node[draw, rectangle, rounded corners=3pt, fill=obsAmberBg, draw=obsAmberFg,
-      font=\scriptsize, align=center, inner sep=4pt]
-    (best) at (5, 3.2) {\textbf{Globalny}\\\textbf{najlepszy}};
-\draw[darr] (r0.north east) to[out=40, in=-150]
-    node[pos=0.45, above, font=\tiny\bfseries, fill=white, inner sep=1pt] {Allreduce(MINLOC)}
-    (best.south west);
-\end{tikzpicture}
-
-\vspace{0.4em}
-\centering\footnotesize
-Każda wyspa ewoluuje niezależną subpopulację (\textbf{$200/N$} osobników).
-Migracja pierścieniowa co~\textbf{50~pokoleń} --- najlepszy osobnik wędruje do sąsiada.
-\end{frame}
-
-\begin{frame}{Operacje MPI --- mapa „gdzie i kiedy"}
-\centering\scriptsize
-\renewcommand{\arraystretch}{1.15}
-\setlength{\tabcolsep}{4pt}
-\resizebox{\textwidth}{!}{%
-\begin{tabular}{>{\tt}l p{4.8cm} l l r}
-\toprule
-\textbf{Prymityw} & \textbf{Cel} & \textbf{Plik:linia} & \textbf{Częstotliwość} & \textbf{Payload} \\
-\midrule
-MPI\_Init              & start środowiska                                       & \texttt{main.c:25}      & 1$\times$               & --- \\
-MPI\_Bcast (BYTE)      & dystrybucja \texttt{ProblemData}                       & \texttt{main.c:107}     & 1$\times$ na starcie    & $\sim$668 KB \\
-MPI\_Barrier           & sync przed pomiarem                                    & \texttt{main.c:139}     & 1$\times$               & --- \\
-MPI\_Wtime             & pomiar wall-clock                                      & \texttt{main.c:140,157} & 2$\times$               & --- \\
-MPI\_Sendrecv          & migracja pierścieniowa best $\to$ sąsiad               & \texttt{ga.c:200}       & co 50 pokoleń           & $n_e\!\cdot\!8$ B \\
-MPI\_Allreduce(MAX)    & synchronizacja terminacji                              & \texttt{ga.c:367}       & \cellcolor{warning}co pokolenie & 1 int \\
-MPI\_Allreduce(MINLOC) & globalny best $(\text{fit}, \text{rank})$              & \texttt{main.c:165}     & 1$\times$ na końcu      & 2 ints \\
-MPI\_Send/Recv         & transfer chromosomu zwycięzcy                          & \texttt{main.c:177-193} & $\leq 2\times$          & $n_e\!\cdot\!8$ B \\
-MPI\_Finalize          & zamknięcie środowiska                                  & \texttt{main.c:213}     & 1$\times$               & --- \\
-\bottomrule
-\end{tabular}%
+\node[rowlabel] at (0.6, 0) {Rodzic A:};
+\foreach \i/\v in {0/2-5, 1/0-3, 2/4-1, 3/1-7, 4/3-2} {
+    \node[gene, fill=obsBlueBg, draw=obsBlueFg] (pa\i) at (1.2*\i + 1.3, 0) {\v};
 }
 
-\vspace{0.6em}
-\begin{columns}[T]
-\column{0.5\textwidth}
-\textbf{Wzorce komunikacji:}
-\begin{itemize}\scriptsize
-    \item \textbf{One-to-all} (Bcast) --- $O(\log N)$
-    \item \textbf{Peer-to-peer} (Sendrecv) --- atomowe, deadlock-free
-    \item \textbf{All-to-all} (Allreduce) --- $O(\log N)$
-\end{itemize}
+\node[rowlabel] at (0.6, -0.85) {Rodzic B:};
+\foreach \i/\v in {0/1-3, 1/3-1, 2/2-5, 3/0-4, 4/4-6} {
+    \node[gene, fill=obsRedBg, draw=obsRedFg] (pb\i) at (1.2*\i + 1.3, -0.85) {\v};
+}
 
-\column{0.5\textwidth}
-\textbf{Niezależne strumienie PRNG:}\\
-\scriptsize PCG32, \texttt{initseq=rank} $\to$ nieskorelowane subpopulacje\\[2pt]
-\textbf{Serializacja:}\\
-\scriptsize chromosom $\to$ flat buffer \texttt{int[]} przed każdym Sendrecv
-\end{columns}
-\end{frame}
+\node[rowlabel] at (0.6, -1.7) {Maska:};
+\foreach \i/\v in {0/A, 1/B, 2/A, 3/B, 4/A} {
+    \node[font=\small\ttfamily\bfseries] at (1.2*\i + 1.3, -1.7) {\v};
+}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{I/O --- przepływ danych}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\node[rowlabel] at (0.6, -2.55) {Potomek:};
+\foreach \i/\v/\bg/\fg in {0/2-5/obsBlueBg/obsBlueFg, 1/3-1/obsRedBg/obsRedFg, 2/4-1/obsBlueBg/obsBlueFg, 3/0-4/obsRedBg/obsRedFg, 4/3-2/obsBlueBg/obsBlueFg} {
+    \node[gene, fill=\bg, draw=\fg] (ch\i) at (1.2*\i + 1.3, -2.55) {\v};
+}
 
-\begin{frame}{Wejście, dystrybucja, wyjście}
-\centering
-\begin{tikzpicture}[
-    src/.style={draw, rounded corners=3pt, fill=ok, minimum width=1.7cm, minimum height=0.55cm, align=center, font=\tiny, thick},
-    proc/.style={draw, rounded corners=3pt, fill=warning, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick},
-    mpiop/.style={draw, rounded corners=3pt, fill=warning!60!ok, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick, dashed},
-    output/.style={draw, rounded corners=3pt, fill=danger, minimum width=1.8cm, minimum height=0.55cm, align=center, font=\tiny, thick},
-    arr/.style={-{Stealth[length=1.8mm]}, thick}
-]
-% Layer 1
-\node[src]  (raw)      at (0, 0)    {\texttt{events\_raw.csv}};
-\node[proc] (conv)     at (2.4, 0)  {\texttt{convert\_simple.py}\\\tiny strict + dedup};
-\node[src]  (rooms)    at (4.7, 0.9){\texttt{rooms.csv}};
-\node[src]  (teachers) at (4.7, 0.3){\texttt{teachers.csv}};
-\node[src]  (groups)   at (4.7,-0.3){\texttt{groups.csv}};
-\node[src]  (courses)  at (4.7,-0.9){\texttt{courses.csv}};
-% Layer 2
-\node[proc, minimum width=2.2cm] (load) at (7.5, 0)  {\texttt{io.c}\\\tiny load+expand};
-\node[proc, minimum width=2.2cm] (data) at (10.2, 0) {\texttt{ProblemData}\\\tiny rank 0};
-% Layer 3
-\node[mpiop, minimum width=2.2cm] (bcast) at (10.2, -1.7){\texttt{MPI\_Bcast}\\\tiny BYTE, 1$\times$};
-% Layer 4
-\node[proc, minimum width=4cm, minimum height=0.9cm] (allranks) at (10.2, -3.5)
-    {Rank 0..N-1 --- GA loop\\\tiny Sendrecv (mig.) + Allreduce (term.)};
-% Layer 5
-\node[mpiop, minimum width=2.2cm] (red) at (5.5, -3.5){\texttt{Allreduce}\\\tiny MINLOC};
-% Layer 6
-\node[output, minimum width=2.2cm] (timetable)  at (1.5, -2.7) {\texttt{timetable.txt}};
-\node[output, minimum width=2.2cm] (schedule)   at (1.5, -3.5) {\texttt{schedule.csv}};
-\node[output, minimum width=2.2cm] (conv_out)   at (1.5, -4.3) {\texttt{convergence\_rankN.csv}};
-% arrows
-\draw[arr] (raw) -- (conv);
-\draw[arr] (conv.east) -- ++(0.2,0) |- (rooms.west);
-\draw[arr] (conv.east) -- ++(0.2,0) |- (teachers.west);
-\draw[arr] (conv.east) -- ++(0.2,0) |- (groups.west);
-\draw[arr] (conv.east) -- ++(0.2,0) |- (courses.west);
-\draw[arr] (rooms.east)    -- ++(0.2,0) |- (load.west);
-\draw[arr] (teachers.east) -- ++(0.2,0) |- (load.west);
-\draw[arr] (groups.east)   -- ++(0.2,0) |- (load.west);
-\draw[arr] (courses.east)  -- ++(0.2,0) |- (load.west);
-\draw[arr] (load) -- (data);
-\draw[arr] (data) -- (bcast);
-\draw[arr] (bcast) -- (allranks);
-\draw[arr] (allranks.west) -- (red.east);
-\draw[arr] (red.west) -- (timetable.east);
-\draw[arr] (red.west) -- ++(-0.4,0) |- (schedule.east);
-\draw[arr] (allranks.south) -- ++(0,-0.3) -| (conv_out.east);
+\node[font=\footnotesize\itshape, gray] at (3.7, -3.25) {każdy gen = (timeslot, sala)};
+
+% --- Mutacja ---
+\node[font=\small\bfseries] at (3.7, -4.2) {Mutacja adaptacyjna};
+
+\node[rowlabel] at (0.6, -5.1) {Przed:};
+\foreach \i/\v in {0/2-5, 1/3-1, 3/0-4, 4/3-2} {
+    \node[gene, fill=white, draw=black!60] at (1.2*\i + 1.3, -5.1) {\v};
+}
+\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpre) at (1.2*2 + 1.3, -5.1) {4-1};
+
+\node[rowlabel] at (0.6, -6.1) {Po:};
+\foreach \i/\v in {0/2-5, 1/3-1, 3/0-4, 4/3-2} {
+    \node[gene, fill=white, draw=black!60] at (1.2*\i + 1.3, -6.1) {\v};
+}
+\node[gene, fill=obsOrangeBg, draw=obsOrangeFg] (mpost) at (1.2*2 + 1.3, -6.1) {1-3};
+
+\draw[arr, obsOrangeFg, thick]
+    (mpre.south) -- (mpost.north);
+\node[font=\footnotesize\itshape, obsOrangeFg, fill=white, inner xsep=3pt, inner ysep=1pt, anchor=west]
+    at ([xshift=0.35cm]$(mpre.south)!0.5!(mpost.north)$) {losowy (slot, sala)};
+
 \end{tikzpicture}
+\caption{Ilustracja operatorów genetycznych --- krzyżowanie jednorodne i mutacja}
+\label{fig:ga-operators}
+\end{figure}
 
-\vspace{0.4em}
-\begin{center}
-\fcolorbox{black}{ok}{\parbox{0.85\textwidth}{\centering\scriptsize
-\textbf{Każdy rank} pisze własny \texttt{convergence\_rank\textit{N}.csv} w trakcie pętli ---
-po runie mamy 16 trajektorii fitness na jednym wykresie.
-}}
-\end{center}
-\end{frame}
+\subsection{Operator naprawy}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Wyniki}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Zachłanny operator naprawy dla każdego potomka:
+\begin{enumerate}
+    \item Znajdź pierwsze zdarzenie z~naruszeniem twardym.
+    \item Usuń je z~tablic zajętości.
+    \item Wypróbuj 20 losowych przypisań --- wybierz bezkonfliktowe z~najlepszą oceną miękką.
+    \item Jeśli brak --- systematyczny przegląd wszystkich par (slot, sala), wybór minimalnych naruszeń.
+    \item Powtórz do 100 razy lub do braku naruszeń.
+\end{enumerate}
 
-\begin{frame}{Przyspieszenie na klastrze AGH (3 runy / konfigurację)}
-\centering\small
-\renewcommand{\arraystretch}{1.2}
-\begin{tabular}{rrrrrr}
+\subsection{Local search}
+
+Po zakończeniu GA, hill climbing na ograniczeniach miękkich (5000 iteracji, 15 losowych prób/iterację). Akceptuje tylko ruchy zachowujące hard$=$0.
+
+\subsection{Parametry}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
 \toprule
-\textbf{Zdarzenia} & \textbf{$T_1$ [s]} & \textbf{$T_4$ [s]} & \textbf{$T_8$ [s]} & \textbf{$T_{16}$ [s]} & \textbf{$S_{16}$} \\
+\textbf{Parametr} & \textbf{Wartość} \\
 \midrule
-100              &   2.31  &  0.64  &  0.43  &  0.37 & \cellcolor{warning}\textbf{6.32$\times$} \\
-200              &   5.80  &  1.14  &  0.68  &  0.52 & \cellcolor{warning}\textbf{11.18$\times$} \\
-400              &  24.46  &  3.40  &  1.64  &  1.09 & \cellcolor{ok}\textbf{22.38$\times$} $\uparrow$ \\
-633 (pełny)      & 159.96  & 34.62  & 17.32  & 11.08 & \cellcolor{ok}\textbf{14.44$\times$} \\
+Rozmiar populacji               & 200 / N wysp \\
+Maksymalna liczba pokoleń       & 500 \\
+Limit stagnacji                 & 200 \\
+Rozmiar turnieju                & 3 \\
+Prawdopodobieństwo krzyżowania  & 0.8 \\
+Prawdopodobieństwo mutacji      & 0.05 (adaptacyjne) \\
+Elityzm                         & 1 osobnik \\
+Maks. prób naprawy              & 100 \\
+Interwał migracji               & 50 pokoleń \\
+Liczba migrantów                & 1 \\
 \bottomrule
 \end{tabular}
+\caption{Parametry algorytmu genetycznego}
+\label{tab:params}
+\end{table}
 
-\vspace{0.4em}
+% =====================================================================
+% 4. ARCHITEKTURA RÓWNOLEGŁA
+% =====================================================================
+\section{Architektura równoległa}
+
+\subsection{Model wyspowy (Island Model)}
+
+Każdy proces MPI utrzymuje niezależną subpopulację i~wykonuje pełny algorytm genetyczny. Procesy połączone w~topologię pierścienia: proces $i$ wysyła do $(i+1) \bmod N$ i~odbiera od $(i-1+N) \bmod N$.
+
+\begin{lstlisting}[style=cstyle, caption={Migracja pierścieniowa (ga.c)}]
+int dest   = (rank + 1) % size;
+int source = (rank - 1 + size) % size;
+
+pack_genes(&pop[best_idx], send_buf, data->num_events);
+
+MPI_Sendrecv(send_buf, count, MPI_INT, dest,   0,
+             recv_buf, count, MPI_INT, source, 0,
+             MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+\end{lstlisting}
+
+\subsection{Dystrybucja danych}
+
+Rank 0 wczytuje CSV i~rozsyła \texttt{ProblemData} via \texttt{MPI\_Bcast} jako \texttt{MPI\_BYTE} --- bezpieczne na homogenicznym klastrze x86\_64 (struktura bez wskaźników).
+
+\subsection{Synchronizacja terminacji}
+
+\texttt{MPI\_Allreduce} z~\texttt{MPI\_MAX} (semantyka OR) --- każdy rank sygnalizujący stop wyzwala globalne zakończenie.
+
+\begin{lstlisting}[style=cstyle, caption={Zsynchronizowana terminacja (ga.c)}]
+int global_stop = 0;
+MPI_Allreduce(&local_stop, &global_stop, 1, MPI_INT,
+              MPI_MAX, MPI_COMM_WORLD);
+if (global_stop) break;
+\end{lstlisting}
+
+\subsection{Zbieranie najlepszego rozwiązania}
+
+\texttt{MPI\_Allreduce} z~\texttt{MPI\_MINLOC} na parze \texttt{MPI\_2INT} (fitness, ranga). Chromosom zwycięzcy transferowany punkt-punkt do rangi 0.
+
+\subsection{Generator liczb pseudolosowych}
+
+PCG32 z~niezależnym strumieniem per rank: \texttt{initstate = time(NULL)}, \texttt{initseq = rank}. Każdy rank ma niezależny strumień losowy zapewniający nieskorelowane subpopulacje --- klucz jakościowy modelu wyspowego.
+
+\subsection{Wykorzystane operacje MPI --- mapa wywołań w kodzie}
+\label{sec:mpi-ops}
+
+Dokładny inwentarz wszystkich miejsc w~kodzie, w~których wywołujemy MPI, wraz z~częstotliwością i~rozmiarem przesyłanych danych:
+
+\begin{table}[H]
+\centering\footnotesize
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{>{\ttfamily}l X l l r}
+\toprule
+\textbf{Prymityw}      & \textbf{Cel}                                            & \textbf{Plik:linia}        & \textbf{Częstotliwość}   & \textbf{Payload} \\
+\midrule
+MPI\_Init              & start środowiska MPI                                    & \texttt{main.c:25}         & 1$\times$ na uruchomienie & --- \\
+MPI\_Comm\_rank/size   & odczyt rank/N                                           & \texttt{main.c:28-29}      & 1$\times$                 & 2 ints \\
+MPI\_Bcast (BYTE)      & dystrybucja \texttt{ProblemData} z~rank~0               & \texttt{main.c:107}        & 1$\times$                 & $\sim$668~KB$^*$ \\
+MPI\_Barrier           & synchronizacja przed pomiarem czasu                     & \texttt{main.c:139}        & 1$\times$                 & --- \\
+MPI\_Wtime             & pomiar wall-clock (start/stop)                          & \texttt{main.c:140,157}    & 2$\times$                 & double \\
+MPI\_Sendrecv          & migracja pierścieniowa (best $\to$ sąsiad)              & \texttt{ga.c:200}          & co 50 pokoleń             & $n_e \cdot 8$~B \\
+MPI\_Allreduce (MAX)   & synchroniczna terminacja (OR semantics)                 & \texttt{ga.c:367}          & co pokolenie              & 1 int \\
+MPI\_Allreduce (MINLOC)& globalny best --- $(\text{fitness}, \text{rank})$       & \texttt{main.c:165}        & 1$\times$ na końcu        & 2 ints \\
+MPI\_Send/Recv         & transfer chromosomu zwycięzcy do rank~0                 & \texttt{main.c:177-193}    & $\leq 2\times$            & $n_e \cdot 8$~B \\
+MPI\_Finalize          & zamknięcie środowiska                                   & \texttt{main.c:213}        & 1$\times$                 & --- \\
+\bottomrule
+\end{tabularx}
+\caption{Inwentarz wywołań MPI w~projekcie. $^*$Rozmiar \texttt{ProblemData} obliczony z~układu pól \texttt{types.h} ($150{\cdot}144 + 300{\cdot}132 + 1200{\cdot}136 + 2500{\cdot}156 + 2500{\cdot}28 + \text{liczniki} = 684\,432$ B $\approx 668$~KB), gdzie limity \texttt{MAX\_ROOMS=150, MAX\_TEACHERS=300, MAX\_GROUPS=1200, MAX\_COURSES=2500, MAX\_EVENTS=2500}. $n_e$ = liczba zdarzeń (do~633 w~bieżącym pełnym datasecie \texttt{data/simple/}).}
+\label{tab:mpi-inventory}
+\end{table}
+
+\noindent\textbf{Klasy wzorców komunikacji:}
 \begin{itemize}\small
-    \item \textbf{0 naruszeń twardych} we wszystkich 16 konfiguracjach $\to$ feasible plan zawsze
-    \item \textbf{Super-liniowy speedup} dla $n_e{=}400$ ($S_{16}{=}22.4\times$, eff~140\%) ---
-          punkt optymalny: dość pracy/wyspę, mały chromosom (3.2 KB)
-    \item Soft viol. dla pełnego datasetu spadają z~równoległością: $T_1{=}2835 \to T_{16}{=}2818$
+\item \textbf{One-to-all (broadcast)} --- \texttt{MPI\_Bcast} raz na starcie. Implementacja MPICH używa drzewa binomialnego: $O(\log N)$ kroków.
+\item \textbf{Peer-to-peer (point-to-point)} --- \texttt{MPI\_Sendrecv} w~migracji. Każdy rank wysyła do~$(r{+}1) \bmod N$ i~odbiera od~$(r{-}1{+}N) \bmod N$ \emph{atomowo} --- gwarantuje brak deadlocku przy synchronicznej migracji.
+\item \textbf{All-to-all (collective reductions)} --- \texttt{MPI\_Allreduce}. Z~\texttt{MPI\_MAX} (terminacja) i~\texttt{MPI\_MINLOC} (globalny best). Złożoność $O(\log N)$ z~drzewem rekursywnej redukcji.
 \end{itemize}
-\end{frame}
 
-\begin{frame}{Wykres przyspieszenia}
+\noindent\textbf{Frakcja sekwencyjna (Amdahl):}
+Przy 16 wyspach pętla GA dla $n_e=633$ zdarzeń (pełny dataset \path{data/simple/}) wykonuje 500 pokoleń~$\times$~1~Allreduce + 10~migracji~=~510~synchronizacji w~ciągu $\sim$11~sekund (zmierzone $T_{16}=11.078$~s, tab.~\ref{tab:speedup633}). Pojedyncza synchronizacja Allreduce na 16~węzłach $<$~1~ms, czyli całkowity narzut MPI~$\approx$~0.5~s ($\approx$~5\% czasu pętli).
+
+% =====================================================================
+% 5. SCHEMAT BLOKOWY
+% =====================================================================
+\section{Schemat blokowy}
+
+% --- Rysunek 1: Flowchart algorytmu (co robi każda wyspa) ---
+\begin{figure}[H]
 \centering
-\includegraphics[height=0.85\textheight]{speedup.png}
-\end{frame}
+\resizebox{!}{0.82\textheight}{%
+\begin{tikzpicture}[
+    startstop/.style={draw, rounded corners=6pt, minimum width=3.0cm, minimum height=0.55cm, align=center, fill=obsRedBg, draw=obsRedFg, thick, font=\footnotesize},
+    process/.style={draw, rounded corners=3pt, minimum width=3.8cm, minimum height=0.55cm, align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\footnotesize},
+    decision/.style={draw, diamond, aspect=2.5, minimum width=2.4cm, align=center, fill=obsAmberBg, draw=obsAmberFg, thick, inner sep=1pt, font=\footnotesize},
+    mpiop/.style={draw, rounded corners=3pt, minimum width=3.8cm, minimum height=0.55cm, align=center, fill=obsGreenBg, draw=obsGreenFg, thick, dashed, font=\footnotesize},
+    io/.style={draw, trapezium, trapezium left angle=70, trapezium right angle=110, minimum width=2.6cm, minimum height=0.55cm, align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\footnotesize},
+    arr/.style={-{Stealth[length=2.5mm]}, thick},
+    arrlbl/.style={font=\footnotesize, inner sep=1pt},
+    node distance=0.4cm
+]
 
-\begin{frame}{Skalowanie jakości i czasu}
+% --- Inicjalizacja ---
+\node[startstop] (start) {START};
+\node[mpiop, below=of start] (init) {\texttt{MPI\_Init} --- $N$ procesów};
+\node[decision, below=of init] (isrank0) {rank $= 0$?};
+% readcsv obok isrank0 (na tym samym poziomie) — eliminuje kolizję z bcast
+\node[io, left=1.8cm of isrank0] (readcsv) {Wczytaj CSV};
+\node[mpiop, below=0.7cm of isrank0] (bcast) {\texttt{MPI\_Bcast(ProblemData)}};
+\node[process, below=of bcast] (initpop) {Inicjalizacja populacji\\(losowa, $200/N$ osobników, PCG32)};
+\node[process, below=of initpop] (eval0) {Ewaluacja fitness\\(hard $\times$ 1000 + soft)};
+
+% --- Pętla GA ---
+\node[process, below=0.7cm of eval0] (select) {Selekcja turniejowa ($K=3$)};
+\node[process, below=of select] (cross) {Krzyżowanie jednorodne ($p=0.8$)};
+\node[process, below=of cross] (mutate) {Mutacja adaptacyjna\\(5\% hard$>$0, 1\% hard$=$0)};
+\node[process, below=of mutate] (repair) {Naprawa zachłanna\\(20 losowych + skan, maks. 100$\times$)};
+\node[process, below=of repair] (eval1) {Ewaluacja fitness + elityzm};
+
+\node[decision, below=0.45cm of eval1] (migcheck) {gen \% 50 $= 0$?};
+\node[mpiop, right=0.7cm of migcheck, minimum width=3.3cm] (migrate) {\texttt{MPI\_Sendrecv}\\migracja pierścieniowa};
+
+\node[mpiop, below=0.55cm of migcheck] (termcheck) {\texttt{MPI\_Allreduce(MPI\_MAX)}\\sprawdź terminację};
+\node[decision, below=0.45cm of termcheck] (done) {stop?};
+
+% --- Po pętli ---
+\node[process, below=0.55cm of done] (localsearch) {Local search --- hill climbing\\(5000 iter., zachowaj hard$=$0)};
+\node[mpiop, below=of localsearch] (gather) {\texttt{MPI\_Allreduce(MINLOC)}\\+ transfer chromosomu do rank 0};
+\node[io, below=of gather] (output) {Rank 0: zapis\\timetable.txt + schedule.csv};
+\node[mpiop, below=of output] (finalize) {\texttt{MPI\_Finalize}};
+\node[startstop, below=of finalize] (end) {END};
+
+% --- Strzałki inicjalizacji ---
+\draw[arr] (start) -- (init);
+\draw[arr] (init) -- (isrank0);
+\draw[arr] (isrank0.west) -- node[arrlbl, above] {tak} (readcsv.east);
+\draw[arr] (isrank0) -- node[arrlbl, right] {nie} (bcast);
+\draw[arr] (readcsv.south) |- (bcast.west);
+\draw[arr] (bcast) -- (initpop);
+\draw[arr] (initpop) -- (eval0);
+\draw[arr] (eval0) -- (select);
+
+% --- Ramka "Pętla GA" (label na górnej krawędzi z fill=white, przerywa linię) ---
+\coordinate (loopTL) at ([xshift=-2.4cm, yshift=0.35cm]select.north west);
+\coordinate (loopBR) at ([xshift=3.7cm, yshift=-0.3cm]done.south east);
+\draw[thick, gray!70, rounded corners=6pt, dashed] (loopTL) rectangle (loopBR);
+\node[font=\footnotesize\bfseries, gray!70!black, fill=white, inner xsep=4pt, inner ysep=1pt]
+    at ($(loopTL)!0.5!(loopTL -| loopBR)$) {Pętla GA (maks. 500 pokoleń)};
+
+% --- Strzałki pętli GA ---
+\draw[arr] (select) -- (cross);
+\draw[arr] (cross) -- (mutate);
+\draw[arr] (mutate) -- (repair);
+\draw[arr] (repair) -- (eval1);
+\draw[arr] (eval1) -- (migcheck);
+\draw[arr] (migcheck.east) -- node[arrlbl, above] {tak} (migrate.west);
+\draw[arr] (migrate.south) |- (termcheck.east);
+\draw[arr] (migcheck) -- node[arrlbl, right] {nie} (termcheck);
+\draw[arr] (termcheck) -- (done);
+\draw[arr] (done.west) -- node[arrlbl, below] {nie} ++(-2.1,0) |- (select.west);
+\draw[arr] (done) -- node[arrlbl, right] {tak} (localsearch);
+
+% --- Strzałki po pętli ---
+\draw[arr] (localsearch) -- (gather);
+\draw[arr] (gather) -- (output);
+\draw[arr] (output) -- (finalize);
+\draw[arr] (finalize) -- (end);
+
+\end{tikzpicture}%
+}
+\caption{Schemat blokowy algorytmu --- przebieg na każdej wyspie MPI}
+\label{fig:flowchart}
+\end{figure}
+
+% --- Rysunek 2: Topologia wysp (architektura MPI) ---
+\begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{quality_scaling.png}
+\begin{tikzpicture}[
+    island/.style={
+        draw, rounded corners=6pt, minimum width=3.8cm, minimum height=2.2cm,
+        align=center, fill=obsBlueBg, draw=obsBlueFg, thick, font=\small
+    },
+    data/.style={
+        draw, rounded corners=4pt, minimum width=2.5cm, minimum height=0.8cm,
+        align=center, fill=obsGreenBg, draw=obsGreenFg, thick, font=\small
+    },
+    result/.style={
+        draw, rounded corners=4pt, minimum width=4cm, minimum height=0.8cm,
+        align=center, fill=obsOrangeBg, draw=obsOrangeFg, thick, font=\small
+    },
+    mig/.style={-{Stealth[length=3mm]}, thick, obsBlueFg},
+    bcast/.style={-{Stealth[length=3mm]}, thick, obsGreenFg, dashed},
+    reduce/.style={-{Stealth[length=3mm]}, thick, obsRedFg, dotted},
+    edgelbl/.style={font=\footnotesize\ttfamily, fill=white, inner xsep=3pt, inner ysep=1pt}
+]
 
-\vspace{0.3em}
-\centering\scriptsize\itshape
-Lewy: soft viol vs $n_e$ (n=1 vs n=16). Prawy: czas wall-clock (skala log).
-\end{frame}
+% --- Wyspy w rogach kwadratu ---
+\node[island] (r0) at (0, 0)  {Wyspa 0 (rank 0)\\Populacja (200/N)\\GA + PCG32};
+\node[island] (r1) at (7, 0)  {Wyspa 1 (rank 1)\\Populacja (200/N)\\GA + PCG32};
+\node[island] (r2) at (7, -5) {Wyspa 2 (rank 2)\\Populacja (200/N)\\GA + PCG32};
+\node[island] (r3) at (0, -5) {Wyspa N-1\\Populacja (200/N)\\GA + PCG32};
 
-\begin{frame}{Wygenerowany plan zajęć --- grupa PIS-2}
+% --- Migracja pierścieniowa (3 krawędzie pełne + dolna ze wstawką ⋯) ---
+\draw[mig] (r0.east)  -- node[edgelbl] {MPI\_Sendrecv} (r1.west);
+\draw[mig] (r1.south) -- node[edgelbl] {MPI\_Sendrecv} (r2.north);
+\draw[mig] (r3.north) -- node[edgelbl] {MPI\_Sendrecv} (r0.south);
+
+% Dolna krawędź: ciągła strzałka r2 → ⋯ → r3
+% Jedna etykieta MPI_Sendrecv bezpośrednio nad ⋯ (oba w pos=0.5; label wyniesiony 5mm w górę)
+\draw[mig] (r2.west) --
+    node[edgelbl, pos=0.5, above=5mm] {MPI\_Sendrecv}
+    node[font=\Large\bfseries, gray!55!black, fill=white, inner xsep=5pt, inner ysep=1pt, pos=0.5] {$\cdots$}
+    (r3.east);
+
+% --- Broadcast danych wejściowych ---
+\node[data] (csv) at (-4.2, 2.0) {Dane CSV};
+\draw[bcast] (csv.south east) -- node[edgelbl, pos=0.55] {MPI\_Bcast} (r0.north west);
+
+% --- Allreduce + wynik (niżej, żeby zmieścić orthogonalne trasy) ---
+\node[result] (allreduce) at (3.5, -8.8)  {MPI\_Allreduce (MINLOC)};
+\node[result] (best)      at (3.5, -10.4) {Najlepsze rozwiązanie};
+
+% --- Redukcja: r0 i r1 trasowane NA ZEWNĄTRZ kwadratu (L-shape), r2/r3 prosto w dół ---
+\draw[reduce] (r0.west) -- ++(-1.5,0) |- (allreduce.west);
+\draw[reduce] (r1.east) -- ++( 1.5,0) |- (allreduce.east);
+\draw[reduce] (r3.south) -- (allreduce.north west);
+\draw[reduce] (r2.south) -- (allreduce.north east);
+\draw[-{Stealth[length=3mm]}, thick] (allreduce) -- (best);
+
+% --- Legenda POZIOMA pod wynikiem (nie koliduje z trasami L-shape) ---
+\node[anchor=north, font=\footnotesize, draw=gray!40, rounded corners=3pt, fill=white, inner sep=5pt] at (3.5, -11.3) {
+    \begin{tabular}{@{}l@{\ }l@{\hspace{1.3em}}l@{\ }l@{\hspace{1.3em}}l@{\ }l@{}}
+    {\color{obsBlueFg}\rule{0.7cm}{1.5pt}} & Migracja (co 50 pokoleń) &
+    {\color{obsGreenFg}\rule[0.5ex]{0.22cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.22cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.22cm}{1pt}} & Rozgłaszanie danych &
+    {\color{obsRedFg}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}\hspace{1pt}\rule[0.5ex]{0.12cm}{1pt}} & Redukcja \\
+    \end{tabular}
+};
+
+\end{tikzpicture}
+\caption{Topologia modelu wyspowego --- migracja pierścieniowa, broadcast i redukcja. Zilustrowane $4$ reprezentatywne wyspy; wielokropek zaznacza pozostałe wyspy dla $N>4$.}
+\label{fig:island-model}
+\end{figure}
+
+% --- Rysunek 4: Diagram czasoprzestrzenny MPI (space-time) ---
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    lbl/.style={font=\footnotesize},
+    axlbl/.style={font=\scriptsize},
+    migline/.style={thick, obsGreenFg!85, dashed},
+    migarrow/.style={-{Stealth[length=1.6mm]}, semithick, obsGreenFg!85!black},
+    bcastarr/.style={-{Stealth[length=2mm]}, thick, obsGreenFg, dashed},
+    redarr/.style={-{Stealth[length=3mm]}, very thick, obsRedFg},
+    x=1cm, y=1cm
+]
+
+% --- Pasy ranków (rank 0 na górze, rank N-1 na dole; rank N-1 niżej żeby zrobić miejsce na ⋮) ---
+\foreach \r/\y in {0/3, 1/2, 2/1, {N-1}/-1} {
+    \fill[obsBlueBg] (0, \y-0.26) rectangle (10, \y+0.26);
+    \draw[obsBlueFg, thick, rounded corners=2pt] (0, \y-0.26) rectangle (10, \y+0.26);
+    \node[lbl, anchor=east] at (-0.1, \y) {rank \r};
+}
+
+% Nagłówek pasów
+\node[lbl, obsBlueFg!80!black, anchor=south] at (5, 3.95)
+    {\textbf{Równoległe wykonanie GA loop na wszystkich rankach} (selekcja $\to$ crossover $\to$ mutacja $\to$ repair $\to$ eval)};
+
+% --- Oś X (generacje) ---
+\draw[->, semithick, black!70] (0, -1.85) -- (10.5, -1.85) node[right, lbl] {generacja};
+\foreach \g in {0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500} {
+    \pgfmathsetmacro{\xx}{\g/50}
+    \draw[black!60] (\xx, -1.80) -- (\xx, -1.90);
+    \node[axlbl, below=-2pt] at (\xx, -1.90) {\g};
+}
+
+% --- Pionowe markery migracji co 50 pokoleń ---
+\foreach \g in {50, 100, 150, 200, 250, 300, 350, 400, 450} {
+    \pgfmathsetmacro{\xx}{\g/50}
+    \draw[migline] (\xx, -1.4) -- (\xx, 3.5);
+}
+\node[lbl, obsGreenFg, anchor=south west] at (0.1, 4.35)
+    {\textbf{MPI\_Sendrecv} --- migracja pierścieniowa (co 50 pokoleń, linie przerywane)};
+
+% --- Reprezentacyjna runda migracji w g=250 (strzałki rank-to-rank) ---
+\pgfmathsetmacro{\xm}{5}
+\draw[migarrow] (\xm, 2.74) -- (\xm, 2.26);  % rank 0 -> rank 1
+\draw[migarrow] (\xm, 1.74) -- (\xm, 1.26);  % rank 1 -> rank 2
+% rank 2 -> ⋮ -> rank N-1: początek (sama linia) + pionowe trzykropki + koniec (strzałka z grotem w dół)
+\draw[thick, obsGreenFg!85!black] (\xm, 0.74) -- (\xm, 0.25);
+\node[font=\Large\bfseries, obsGreenFg!70!black, fill=white, inner xsep=3pt, inner ysep=1pt]
+    at (\xm, 0) {$\vdots$};
+\draw[migarrow] (\xm, -0.25) -- (\xm, -0.74);
+\node[font=\tiny, obsGreenFg!80!black, anchor=west] at (\xm+0.12, 1.5)
+    {$+$ wrap $\text{rank}(N{-}1)\!\to\!0$};
+
+% --- MPI_Bcast na starcie ---
+\node[lbl, obsGreenFg, anchor=east, align=right,
+      draw=obsGreenFg, fill=obsGreenBg, rounded corners=3pt, inner sep=3pt]
+      (bcastbox) at (-1.1, 1.5) {\textbf{MPI\_Bcast}\\ProblemData};
+\foreach \y in {-1, 1, 2, 3} {
+    \draw[bcastarr] (bcastbox.east) -- (-0.02, \y);
+}
+
+% --- MPI_Allreduce na końcu ---
+\draw[redarr] (10.02, 3.6) -- (10.02, -1.4);
+\foreach \y in {-1, 1, 2, 3} {
+    \draw[->, semithick, obsRedFg] (9.98, \y) -- (10.04, \y);
+}
+\node[lbl, obsRedFg, anchor=west, align=left,
+      draw=obsRedFg, fill=white, rounded corners=3pt, inner sep=3pt]
+      at (10.3, 1.0) {\textbf{MPI\_Allreduce}\\(MINLOC)\\$+$ local search};
+
+\end{tikzpicture}
+\caption{Diagram czasoprzestrzenny wykonania --- wszystkie ranki MPI wykonują pętlę GA \emph{równolegle} (jednoczesna praca na węzłach klastra) i \emph{niezależnie od siebie między synchronizacjami} (żadnej komunikacji w trakcie selekcji/krzyżowania/mutacji). Pionowe linie przerywane oznaczają synchronizacje \texttt{MPI\_Sendrecv} co~50 pokoleń. Pełne strzałki w~$g=250$ ilustrują jedną reprezentatywną rundę migracji pierścieniowej --- wymianę podpopulacji między sąsiadującymi rankami. Finalna redukcja przez \texttt{MPI\_Allreduce(MINLOC)} zbiera globalnie najlepsze rozwiązanie, po czym rank~0 wykonuje lokalny hill climbing i zapisuje wynik.}
+\label{fig:spacetime}
+\end{figure}
+
+% =====================================================================
+% 6. WEJŚCIE / WYJŚCIE (I/O)
+% =====================================================================
+\section{Wejście i wyjście (I/O)}
+\label{sec:io}
+
+\subsection{Wczytywanie danych --- pipeline rank~0}
+
+Sekwencja wczytywania zdefiniowana w~\texttt{main.c:42-104}, parsing w~\texttt{io.c}:
+
+\begin{enumerate}
+\item \textbf{Argument CLI} --- katalog danych z~\texttt{argv[1]} (domyślnie \texttt{data/}). Dzięki temu jeden binarny obraz obsługuje wszystkie 4~datasety (\texttt{simple\_n100/200/400/}, \texttt{unitime/}).
+\item \textbf{Cztery wywołania \texttt{load\_*}} --- każde otwiera plik, pomija nagłówek, parsuje wiersze przez \texttt{fgets} + \texttt{strtok} (rozdzielnik~\texttt{,}), trimuje białe znaki:
+\begin{itemize}\small
+    \item \texttt{load\_rooms("rooms.csv")}     $\to$ \texttt{Room data.rooms[MAX\_ROOMS]}
+    \item \texttt{load\_teachers("teachers.csv")}$\to$ \texttt{Teacher data.teachers[MAX\_TEACHERS]}
+    \item \texttt{load\_groups("groups.csv")}    $\to$ \texttt{StudentGroup data.groups[MAX\_GROUPS]}
+    \item \texttt{load\_courses("courses.csv")}  $\to$ \texttt{Course data.courses[MAX\_COURSES]}
+\end{itemize}
+Każda funkcja zwraca liczbę wczytanych rekordów lub~$-1$ przy błędzie. Błąd $\Rightarrow$ \texttt{MPI\_Abort(1)} (synchroniczne zakończenie wszystkich rankow).
+
+\item \textbf{Ekspansja kursów do zdarzeń} --- \texttt{expand\_events(\&data)}. Kurs typu \texttt{hours\_per\_week=4} generuje 4~niezależne zdarzenia o~tym samym \texttt{course\_id}. Funkcja zwraca \texttt{data.num\_events} (max \texttt{MAX\_EVENTS=2500}, w~bieżącym datasecie 633).
+
+\item \textbf{Walidacja na rank~0} --- \texttt{print\_summary(\&data)} wypisuje liczby encji, które rank~0 widzi przed broadcastem (sanity check).
+\end{enumerate}
+
+\subsection{Dystrybucja danych przez MPI}
+
+Po załadowaniu rank~0 broadcastuje strukturę \texttt{ProblemData} (alokowaną \texttt{static} aby uniknąć przepełnienia stosu):
+
+\begin{lstlisting}[style=cstyle, caption={Broadcast struktury problemu (main.c:107)}]
+/* ProblemData on ALL ranks (static to avoid stack overflow) */
+static ProblemData data;
+memset(&data, 0, sizeof(data));
+/* ... rank 0 fills `data` ... */
+MPI_Bcast(&data, sizeof(ProblemData), MPI_BYTE, 0, MPI_COMM_WORLD);
+assert(data.num_events > 0);
+\end{lstlisting}
+
+\textbf{Dlaczego \texttt{MPI\_BYTE}, a~nie \texttt{MPI\_Type\_struct}?} \texttt{ProblemData} jest płaską strukturą bez wskaźników (tablice o~stałym rozmiarze), klaster jest homogeniczny (16~$\times$~x86\_64), więc transfer bajtowy jest poprawny i~prostszy w~implementacji.
+
+\subsection{Wyjście --- 3 formaty}
+
+Po zakończeniu GA i~zebraniu globalnego best, rank~0 zapisuje 3~różne formaty wyjściowe:
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{lll>{\raggedright\arraybackslash}X}
+\toprule
+\textbf{Plik} & \textbf{Format} & \textbf{Producent} & \textbf{Konsument / cel} \\
+\midrule
+\texttt{timetable.txt}            & TXT human-readable      & rank~0 & szybka inspekcja: siatka dzień $\times$ blok per grupa \\
+\texttt{schedule.csv}             & CSV maszynowy           & rank~0 & wizualizacja w~\texttt{webapp.html}, walidacja \\
+\texttt{convergence\_rank\textit{N}.csv} & CSV per rank      & każdy rank & wykres konwergencji w~gnuplot (per wyspa) \\
+\bottomrule
+\end{tabularx}
+\caption{Pliki wyjściowe i~ich konsumenci}
+\label{tab:io-outputs}
+\end{table}
+
+\textbf{\texttt{convergence\_rank\textit{N}.csv}} pisany jest \emph{w~trakcie} pętli GA przez każdy rank niezależnie (\texttt{ga.c:285,322}) --- jeden wiersz na pokolenie:
+
+\begin{lstlisting}[style=bashstyle, caption={Format pliku konwergencji}]
+generation,best_hard,best_soft,best_fitness,avg_fitness,worst_fitness
+0,12,847,12847,15234.50,18901
+1,11,832,11832,14987.25,18745
+...
+\end{lstlisting}
+
+Pozwala to wizualizować trajektorie wszystkich 16~wysp na jednym wykresie i~obserwować efekt migracji (skoki fitness po~50,~100,~\ldots~pokoleniach).
+
+\subsection{Diagram przepływu danych I/O}
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    src/.style={draw, rounded corners=4pt, fill=obsGreenBg, draw=obsGreenFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    proc/.style={draw, rounded corners=4pt, fill=obsBlueBg, draw=obsBlueFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    mpiop/.style={draw, rounded corners=4pt, fill=obsAmberBg, draw=obsAmberFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick, dashed},
+    output/.style={draw, rounded corners=4pt, fill=obsOrangeBg, draw=obsOrangeFg, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\footnotesize, thick},
+    arr/.style={-{Stealth[length=2.5mm]}, thick},
+    arrlbl/.style={font=\scriptsize\itshape, fill=white, inner xsep=2pt, inner ysep=1pt}
+]
+
+% Layer 1: UniTime source
+\node[src] (raw)    at (0, 4)   {\texttt{events\_raw.csv}\\\tiny (4587 rekordów)};
+
+% Layer 2: Python converter
+\node[proc] (conv)  at (3.5, 4) {\texttt{convert\_simple.py}\\\tiny strict filter + dedup};
+
+% Layer 3: 4 normalized CSV (większy gap żeby boxy się nie nachodziły)
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (rooms)    at (7, 5.85) {\texttt{rooms.csv}};
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (teachers) at (7, 4.75) {\texttt{teachers.csv}};
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (groups)   at (7, 3.65) {\texttt{groups.csv}};
+\node[src, minimum width=1.7cm, minimum height=0.65cm] (courses)  at (7, 2.55) {\texttt{courses.csv}};
+
+% Layer 4: rank 0 loads + builds ProblemData
+\node[proc, minimum width=2.7cm] (load) at (10.5, 4) {\texttt{io.c}\\\tiny load\_*() + expand};
+\node[proc] (data) at (14, 4) {\texttt{ProblemData}\\\tiny rank 0};
+
+% Layer 5: MPI broadcast
+\node[mpiop] (bcast) at (14, 1.5) {\texttt{MPI\_Bcast}\\\tiny BYTE, 1$\times$};
+
+% Layer 6: All ranks
+\node[proc, minimum width=4cm, minimum height=1.2cm] (allranks) at (14, -1) {Rank 0..N-1\\\tiny GA loop + migration + reduce};
+
+% Layer 7: outputs
+\node[output, minimum width=2cm] (timetable)   at (8.5, -1) {\texttt{timetable}\\\texttt{.txt}};
+\node[output, minimum width=2cm] (schedule)    at (8.5, -2.2) {\texttt{schedule}\\\texttt{.csv}};
+\node[output, minimum width=2cm] (convergence) at (8.5, 0.2) {\texttt{convergence}\\\texttt{\_rankN.csv}};
+
+% Layer 8: tools
+\node[font=\scriptsize, gray!60!black, anchor=north] at (8.5, -3) {webapp.html · gnuplot};
+
+% Arrows
+\draw[arr] (raw) -- node[arrlbl, above=3pt, pos=0.5] {Python} (conv);
+
+% Fan-out: conv -> 4 CSV przez wspólny trunk pionowy
+\coordinate (sp1) at ($(conv.east) + (0.75, 0)$);
+\draw[thick] (conv.east) -- (sp1);
+\draw[thick] (sp1 |- rooms.west) -- (sp1 |- courses.west);
+\foreach \n in {rooms, teachers, groups, courses}
+    \draw[arr] (sp1 |- \n.west) -- (\n.west);
+
+% Fan-in: 4 CSV -> load przez wspólny trunk pionowy
+\coordinate (sp2) at ($(load.west) + (-0.75, 0)$);
+\draw[thick] (sp2 |- rooms.east) -- (sp2 |- courses.east);
+\foreach \n in {rooms, teachers, groups, courses}
+    \draw[thick] (\n.east) -- (sp2 |- \n.east);
+\draw[arr] (sp2 |- load.west) -- (load.west);
+
+\draw[arr] (load) -- (data);
+\draw[arr] (data) -- node[arrlbl, right] {rank 0} (bcast);
+\draw[arr] (bcast) -- node[arrlbl, right] {wszystkie ranki} (allranks);
+\draw[arr] (allranks.west) -- node[arrlbl, above] {rank 0} (timetable.east);
+\draw[arr] (allranks.west) -- ++(-1, 0) |- (schedule.east);
+\draw[arr] (allranks.west) -- ++(-1, 0) |- (convergence.east);
+
+\end{tikzpicture}%
+}
+\caption{Pełny przepływ danych --- od surowego eksportu UniTime do plików wynikowych. Zielone bloki~=~dane (CSV), niebieskie~=~przetwarzanie, żółte przerywane~=~komunikacja MPI, pomarańczowe~=~wyjście.}
+\label{fig:io-flow}
+\end{figure}
+
+% =====================================================================
+% 7. WYNIKI
+% =====================================================================
+\section{Wyniki}
+\label{sec:wydajnosc}
+
+\subsection{Przyspieszenie (speedup)}
+
+Pomiary wykonane na klastrze wydziałowym AGH (16 jednorodnych węzłów MPI), \textbf{3 uruchomienia} na konfigurację. Każdy pomiar obejmuje pełny przebieg GA + local search post-processing. Średnie czasy obliczone z plików \path{results_v3/unitime_v2_n*.csv} oraz \path{results_v3/unitime_v2_nogrupa.csv}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+\textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
+\midrule
+1  & 2.313 & 1.00$\times$  & 0 & 341 \\
+4  & 0.637 & 3.63$\times$  & 0 & 341 \\
+8  & 0.430 & 5.38$\times$  & 0 & 341 \\
+16 & 0.366 & 6.32$\times$  & 0 & 341 \\
+\bottomrule
+\end{tabular}
+\caption{Przyspieszenie --- 100 zdarzeń (\texttt{results\_v3/unitime\_v2\_n100.csv})}
+\label{tab:speedup100}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+\textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
+\midrule
+1  & 5.798 & 1.00$\times$  & 0 & 641 \\
+4  & 1.139 & 5.09$\times$  & 0 & 641 \\
+8  & 0.676 & 8.58$\times$  & 0 & 641 \\
+16 & 0.519 & 11.18$\times$ & 0 & 641 \\
+\bottomrule
+\end{tabular}
+\caption{Przyspieszenie --- 200 zdarzeń (\texttt{results\_v3/unitime\_v2\_n200.csv})}
+\label{tab:speedup200}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+\textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
+\midrule
+1  & 24.461 & 1.00$\times$   & 0 & 1291 \\
+4  &  3.397 & 7.20$\times$   & 0 & 1291 \\
+8  &  1.635 & 14.96$\times$  & 0 & 1291 \\
+16 &  1.093 & 22.38$\times$  & 0 & 1291 \\
+\bottomrule
+\end{tabular}
+\caption{Przyspieszenie --- 400 zdarzeń (\texttt{results\_v3/unitime\_v2\_n400.csv})}
+\label{tab:speedup400}
+\end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+\toprule
+\textbf{Procesy} & \textbf{Śr. czas [s]} & \textbf{Speedup} & \textbf{Hard viol.} & \textbf{Soft viol.} \\
+\midrule
+1  & 159.958 & 1.00$\times$   & 0 & 2835 \\
+4  &  34.621 & 4.62$\times$   & 0 & 2835 \\
+8  &  17.315 & 9.24$\times$   & 0 & 2823 \\
+16 &  11.078 & 14.44$\times$  & 0 & 2818 \\
+\bottomrule
+\end{tabular}
+\caption{Przyspieszenie --- 633 zdarzeń (pełny dataset \texttt{data/simple/}; źródło: \texttt{results\_v3/unitime\_v2\_nogrupa.csv}). Soft~viol.~uśrednione z~3 runów.}
+\label{tab:speedup633}
+\end{table}
+
+\subsection{Zbiorcze porównanie}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrr}
+\toprule
+\textbf{Zdarzenia} & \textbf{$T_1$ [s]} & \textbf{$T_{16}$ [s]} & \textbf{$S_{16}$} & \textbf{Eff.} & \textbf{Hard viol.} \\
+\midrule
+100  &   2.313 &  0.366 &  6.32$\times$ & 39.5\% & 0 \\
+200  &   5.798 &  0.519 & 11.18$\times$ & 69.9\% & 0 \\
+400  &  24.461 &  1.093 & 22.38$\times$ & \cellcolor{obsGreenBg}\textbf{139.9\%}$^*$ & 0 \\
+633  & 159.958 & 11.078 & 14.44$\times$ & 90.3\% & 0 \\
+\bottomrule
+\end{tabular}
+\caption{Zbiorcze przyspieszenie i efektywność (eff.~= $S_{16}/16$) --- 1 vs 16 procesów. $^*$Super-liniowy speedup dla 400 zdarzeń (efektywność~$>$~100\%) --- patrz analiza w~sekcji~\ref{sec:wydajnosc}.}
+\label{tab:speedup-summary}
+\end{table}
+
+\subsection{Wykresy}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{speedup.png}
+\caption{Przyspieszenie vs liczba procesów MPI dla 4~rozmiarów problemu (100/200/400/633 zdarzeń). Wykres wygenerowany skryptem \texttt{plots/generate\_real\_pngs.py} z~plików \texttt{results\_v3/unitime\_v2\_*.csv}.}
+\label{fig:speedup}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{quality_scaling.png}
+\caption{Jakość rozwiązania (naruszenia miękkie, panel lewy) i~czas wykonania (skala log., panel prawy) vs rozmiar problemu, dla wariantów 1-procesowego i~16-procesowego. Źródło danych: \texttt{results\_v3/unitime\_v2\_*.csv}.}
+\label{fig:quality}
+\end{figure}
+
+\subsection{Analiza wydajności}
+
+\subsubsection*{Prawo Amdahla --- teoretyczna górna granica}
+
+Klasyczne prawo Amdahla wyznacza maksymalne teoretyczne przyspieszenie dla algorytmu o~niezerowej frakcji sekwencyjnej $f$:
+\[
+S(p) = \frac{1}{f + \frac{1-f}{p}},
+\qquad
+\lim_{p \to \infty} S(p) = \frac{1}{f}.
+\]
+Frakcja $f$ obejmuje: jednorazowe wczytanie CSV i~broadcast \texttt{ProblemData} z~rank~0, finalne \texttt{Allreduce(MINLOC)} + transfer chromosomu zwycięzcy, plus per-pokoleniowe \texttt{Allreduce(MAX)}. Dopasowanie modelu Amdahla do empirycznego $S_{16}=6.32\times$ dla $n_e=100$ daje $f \approx 0.10$, co implikuje teoretyczne $S_\infty \approx 10\times$ --- spójne z~obserwacją, że dla małych instancji speedup nasyca się szybko.
+
+\subsubsection*{Super-liniowość --- $S_{16} > 16\times$ dla $n_e=400$}
+
+Dla \textbf{400 zdarzeń} obserwujemy przyspieszenie super-liniowe:
+\[
+S_{16}(400) = 22.38\times \quad (\text{efektywność } 22.38/16 = 1.40 = 140\%)
+\]
+To zjawisko wykracza poza klasyczne prawo Amdahla i~wymaga osobnego wyjaśnienia. W~modelach wyspowych GA występują dwa zazębiające się mechanizmy:
+
+\begin{enumerate}
+\item \textbf{Wielowyspowa eksploracja} --- 16~niezależnych populacji startuje z~różnych losowych punktów przestrzeni rozwiązań (niezależne PCG32, \texttt{initseq=rank}). Każda eksploruje \emph{inny} region. Pojedynczy GA z~jedną populacją 200~osobników badałby zaledwie jeden region; 16~wysp z~populacją 12-13~każda --- 16~różnych regionów. Algorytm wyspowy nie jest tu „tym samym GA podzielonym na 16", lecz \emph{innym algorytmem} o~lepszych właściwościach jakościowych.
+
+\item \textbf{Migracja jako wymiana wiedzy} --- co 50~pokoleń najlepszy osobnik z~każdej wyspy trafia do sąsiada w~pierścieniu. Dobre cechy genetyczne (np.~udane przypisanie 50\% zdarzeń) propagują się po topologii, a~lokalne minima różnych wysp wzajemnie się wybijają. Średnia jakość per pokolenie rośnie szybciej niż w~pojedynczej populacji.
+\end{enumerate}
+
+\subsubsection*{Spadek dla pełnego datasetu ($n_e=633$) --- narzut komunikacji}
+
+Pełny dataset \path{data/simple/} (633~zdarzeń) ma niższy speedup ($S_{16}=14.44\times$) niż~400 zdarzeń ($22.38\times$). Powód: \emph{narzut komunikacji rośnie z~rozmiarem chromosomu}.
+\[
+\text{payload migracji} = n_e \cdot 8\,\text{B} = 633 \cdot 8\,\text{B} = 5.06\,\text{KB}\quad
+\text{(vs 3.2 KB dla }n_e{=}400\text{)}
+\]
+Co~50~pokoleń każdy z~16~rankow wysyła i~odbiera 5.06~KB; przy 10~migracjach total per node = 101~KB. Latencja ringu rośnie z~$N$ ($O(N)$ dla synchronicznego \texttt{Sendrecv}), więc dla większych chromosomów koszt komunikacji częściowo niweluje korzyść z~wielowyspowej eksploracji.
+
+\subsubsection*{Wpływ równoległości na jakość rozwiązania}
+
+Speedup nie jest jedynym efektem zrównoleglenia. Dla pełnego datasetu (\path{results_v3/unitime_v2_nogrupa.csv}) wariant 16-wyspowy daje \emph{lepsze rozwiązanie miękkie} niż~sekwencyjny:
+\[
+\overline{\text{soft}}(T_1) = 2835,\qquad \overline{\text{soft}}(T_{16}) = 2818
+\quad (-17 \text{ kar})
+\]
+Wszystkie konfiguracje osiągają \textbf{0~naruszeń twardych} --- algorytm zawsze produkuje plan \emph{wykonalny}. Różnica w~jakości miękkiej oznacza, że Island Model nie tylko liczy szybciej, ale eksploruje skuteczniej.
+
+\subsubsection*{Charakterystyka skalowania}
+
+\begin{table}[H]
+\centering\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{rrrX}
+\toprule
+\textbf{$n_e$} & \textbf{$S_{16}$} & \textbf{Eff.~$=S_{16}/16$} & \textbf{Charakter (z~rzeczywistych pomiarów)} \\
+\midrule
+100  &  6.32$\times$ & 39.5\%  & \textbf{podliniowy} (wysoki narzut przy małej pracy/wyspie, $\sim$0.4~s na rank) \\
+200  & 11.18$\times$ & 69.9\%  & \textbf{podliniowy z~przyzwoitą efektywnością} \\
+400  & 22.38$\times$ & 139.9\% & \textbf{super-liniowy} --- punkt optymalny dla naszej konfiguracji \\
+633  & 14.44$\times$ & 90.3\%  & \textbf{prawie liniowy} z~saturacją (chromosom $\sim$5~KB) \\
+\bottomrule
+\end{tabularx}
+\caption{Reżimy skalowania w~zależności od rozmiaru problemu (źródło: \texttt{results\_v3/unitime\_v2\_*.csv}, średnie z~3~runów per konfiguracja)}
+\label{tab:scaling-regime}
+\end{table}
+
+\textbf{Wniosek inżynierski:} dla projektu UCTP optymalnym punktem jest $n_e \approx 400$ przy $N=16$ (super-liniowość). Mniejsze instancje (100/200) są ograniczone przez stałe koszty komunikacji; większe (633) zaczynają tracić efektywność z~powodu rosnącego payloadu migracji.
+
+% =====================================================================
+% INSTRUKCJA OBSŁUGI
+% (Sekcja "Struktura kodu źródłowego" usunięta --- struktura plików
+%  jest udokumentowana w README.md / ARCHITECTURE.md w repozytorium.)
+% =====================================================================
+\section{Instrukcja obsługi}
+
+\subsection{Kompilacja}
+
+Wymagane: \texttt{mpicc} (MPICH 3.2+ lub kompatybilny). Jeśli klaster zapewnia własne środowisko MPI -- należy je załadować przed wywołaniem \texttt{make} (np. \texttt{source <cluster\_mpi\_env>.sh}).
+
+\begin{lstlisting}[style=bashstyle]
+make
+\end{lstlisting}
+
+\subsection{Uruchomienie --- 1 proces}
+
+\begin{lstlisting}[style=bashstyle]
+make run
+# lub: mpiexec -n 1 ./timetable_ga data/simple/
+\end{lstlisting}
+
+\subsection{Uruchomienie na klastrze}
+
+\begin{lstlisting}[style=bashstyle]
+# Plik 'nodes' z lista nazw wezlow (jedna na linie),
+# wygenerowany skryptem dostarczonym przez administratora klastra.
+
+# Uruchomienie z 16 procesami MPI
+mpiexec -f nodes -n 16 ./timetable_ga data/simple/
+\end{lstlisting}
+
+\subsection{Benchmark}
+
+\begin{lstlisting}[style=bashstyle]
+make benchmark    # 5 uruchomien x {1, 2, 4, 8, 16} procesow
+make plot         # generowanie wykresow (gnuplot)
+\end{lstlisting}
+
+\subsection{Dane wejściowe}
+
+Katalog \path{data/} w~formacie CSV:
+
+\begin{itemize}
+    \item \path{rooms.csv} --- \path{id, name, capacity, is_lab}
+    \item \path{teachers.csv} --- \path{id, name}
+    \item \path{groups.csv} --- \path{id, name, num_students}
+    \item \path{courses.csv} --- \path{id, name, teacher_id, group_id,}\\
+          \path{hours_per_week, requires_lab, duration_slots, parent_group_id}
+\end{itemize}
+
+\subsection{Dane wyjściowe}
+
+\begin{itemize}
+    \item \path{timetable.txt} --- czytelny plan zajęć per grupa (siatka dzień $\times$ blok)
+    \item \path{schedule.csv} --- maszynowy format do wizualizacji
+    \item \path{convergence_rankN.csv} --- konwergencja per wyspa
+\end{itemize}
+
+\begin{figure}[H]
 \centering
 \includegraphics[width=\textwidth]{webapp_pis2.png}
+\caption{Wygenerowany plan zajęć w~aplikacji webowej \texttt{webapp.html} --- widok grupy \texttt{PIS-2} (32~zajęcia, 6~podgrup) z~rozwiązania GA dla pełnego datasetu \texttt{simple} (633~zdarzeń, 16~procesów MPI). Kolorowanie automatyczne per przedmiot, hover pokazuje pełną nazwę kursu.}
+\label{fig:timetable-output}
+\end{figure}
 
-\vspace{0.2em}
-\centering\scriptsize\itshape
-Aplikacja \texttt{webapp.html} --- widok grupy \texttt{PIS-2} (32 zaj., 6 podgrup) z~rozwiązania GA na pełnym datasecie (16 procesów MPI).
-\end{frame}
+Aplikacja \path{webapp.html} (zasilana lokalnym REST API \path{scripts/api_prototype.py} czytającym CSV-y w~\path{data/} oraz \path{results_v3/}) pozwala na przeglądanie planu per grupa, prowadzący lub sala, z~kolorowaniem i~filtrowaniem oraz porównaniem side-by-side z~oryginalnym planem UniTime.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Makefile --- reguły}
+
+\begin{lstlisting}[style=makefilestyle, caption={Kluczowe reguły Makefile}]
+all: $(TARGET)           # kompilacja
+run: $(TARGET)           # uruchomienie z danymi przykladowymi
+clean:                   # przywrocenie stanu wyjsciowego
+    rm -rf $(OBJ_DIR) $(TARGET) timetable.txt schedule.csv convergence_rank*.csv nodes
+\end{lstlisting}
+
+% =====================================================================
+% 9. WNIOSKI
+% =====================================================================
 \section{Wnioski}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{frame}{Podsumowanie projektu}
-\textbf{Zrealizowane:}
-\begin{itemize}\small
-    \item Pełny GA: dwupoziomowy fitness, naprawa zachłanna, local search
-    \item Island Model + ring migration + Allreduce + niezależne PCG32
-    \item Realny dataset UniTime AGH (633 zdarzeń) + 3 podzbiory skalowalności
-    \item Realne benchmarki na 16-węzłowym klastrze --- super-liniowy speedup
+\begin{itemize}
+    \item \textbf{Poprawność:} \textbf{0~naruszeń twardych} na wszystkich instancjach (100, 200, 400, 633 zdarzeń) we wszystkich konfiguracjach $\{1, 4, 8, 16\}$ procesów (zweryfikowane w~\path{results_v3/unitime_v2_*.csv}).
+    \item \textbf{Najwyższe przyspieszenie:} $S_{16}=22.38\times$ dla 400 zdarzeń (super-liniowe, efektywność~140\%) --- punkt optymalny współczynnika praca/komunikacja.
+    \item \textbf{Skalowalność:} speedup rośnie z~rozmiarem do $n_e=400$, potem spada przez narzut komunikacji: $6.32\times$ (100), $11.18\times$ (200), $\mathbf{22.38\times}$ (400), $14.44\times$ (633).
+    \item \textbf{Jakość:} wariant 16-wyspowy daje lepsze rozwiązania miękkie niż~1-wyspowy ($\overline{\text{soft}}_{T_{16}}=2818$ vs~$2835$ dla pełnego datasetu, $-17$~kar) --- Island Model nie tylko liczy szybciej, ale i~lepiej eksploruje przestrzeń.
+    \item \textbf{Komunikacja:} dla małego $n_e=100$ frakcja sekwencyjna~$f \approx 0.10$ ogranicza speedup do~$\sim$10$\times$; dla większych instancji $f$ maleje, a~zysk z~wielowyspowej eksploracji rośnie aż do punktu, w~którym dominuje payload migracji.
 \end{itemize}
 
-\vspace{0.4em}
-\textbf{Wnioski techniczne:}
-\begin{itemize}\small
-    \item Island Model dobrze skaluje się do $N=16$, narzut komunikacji
-          rośnie z chromosomem ($\sim$5.1 KB na migrację dla pełnego datasetu 633 zdarzeń)
-    \item Naruszenia miękkie spadają z liczbą wysp dzięki bogatszej eksploracji
-    \item Synchroniczna terminacja przez Allreduce(MAX) eliminuje deadlocki
-          przy wczesnej zbieżności jednej wyspy
-\end{itemize}
-
-\vspace{0.4em}
-\begin{center}
-\fcolorbox{black}{ok}{\parbox{0.85\textwidth}{\centering\small
-\textbf{Repo:} \url{https://github.com/LeoTheOriginal/parallel-ga-timetabling}\\
-\textbf{Raport:} \url{https://github.com/LeoTheOriginal/parallel-ga-timetabling-report}
-}}
-\end{center}
-\end{frame}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Zakończenie}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{frame}{Dziękujemy za uwagę}
-\vfill
-\begin{center}
-\Large \textbf{Pytania?}
-
-\vspace{1.5em}
-\normalsize Dawid Piotrowski \quad $\cdot$ \quad Julia Przeździk
-\end{center}
-\vfill
-\end{frame}
+% =====================================================================
+% BIBLIOGRAFIA
+% =====================================================================
+\begin{thebibliography}{9}
+\bibitem{banczyk} K.~Bańczyk, H.~Boiński, A.~Krawczyk, \textit{Parallelisation of Genetic Algorithm for University Course Timetable Optimisation}, IEEE PARELEC'06, 2006.
+\bibitem{faris} H.~Faris, A.~Sheta, E.~Tobal, \textit{A Parallel Genetic Algorithm for Solving Time Tabling Problem}, ICGST-AIML, vol.~8, 2008.
+\end{thebibliography}
 
 \end{document}
